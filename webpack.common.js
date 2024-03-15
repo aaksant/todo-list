@@ -8,6 +8,9 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     clean: true
   },
+  devServer: {
+    watchFiles: ['./src/index.html']
+  },
   module: {
     rules: [
       {
@@ -19,7 +22,8 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './src/index.html',
-      inject: 'body'
+      inject: 'head',
+      scriptLoading: 'defer'
     })
   ]
 };
