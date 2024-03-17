@@ -5,10 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test</title>
   </head>
-  
+
   <body>
-    <header class="header">
-      
-    </header>
+    <section class="sidebar">
+      <div class="logo">
+        <a href="https://github.com/aaksant/todo-list">Todo List</a>
+      </div>
+      <nav class="nav-container">
+        <div class="default-task-container">
+          <button id="today-btn" class="nav-btn">Today</button>
+          <button id="important-btn" class="nav-btn">Important</button>
+          <button id="planned-btn" class="nav-btn">Planned</button>
+        </div>
+        <h1>Projects</h1>
+        <div class="project-task-container">
+          <button class="add-project-btn">test project</button>
+          <button class="add-project-btn">+ New project</button>
+        </div>
+      </nav>
+    </section>
+    <section class="main">
+      <header class="header">
+        <div class="task-title-container">
+          <h1 id="task-title" class="task-title">Today</h1>
+        </div>
+        <button id="add-task">+ New task</button>
+      </header>
+      <div class="task-container">
+        <div class="task-row">
+          <div class="task-id">
+            <button class="clear-task">Done</button>
+            <span class="task-name">Example task</span>
+          </div>
+          <div class="task-date">
+            <span id="task-date">17/03/2024</span>
+          </div>
+        </div>
+        <div class="task-row">
+          <div class="task-id">
+            <button class="clear-task">Done</button>
+            <span class="task-name">Example task</span>
+          </div>
+          <div class="task-date">
+            <span id="task-date">17/03/2024</span>
+          </div>
+        </div>
+      </div>
+    </section>
   </body>
 </html>
