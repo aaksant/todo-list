@@ -60,16 +60,18 @@ h2 {
 .main-container {
   display: grid;
   grid-template-columns: 250px 1fr;
+  align-items: start;
   padding: 12px;
 }
 
 .sidebar {
-  border-right: 1px solid black;
+  grid-column: 1 / 2;
   padding: 0 24px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 32px;
+  border-right: 2px solid black;
 }
 
 .nav {
@@ -89,6 +91,7 @@ h2 {
 }
 
 .main {
+  grid-column: 2 / -1;
   padding: 0 24px;
 }
 
@@ -106,6 +109,7 @@ h2 {
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
   border-radius: 5px;
   border-right: 7px solid red;
+  margin-bottom: 18px;
 }
 
 .task-name,
@@ -156,7 +160,6 @@ h2 {
   padding: 3rem 6rem;
   box-shadow: 0 4rem 6rem rgba(0, 0, 0, 0.3);
   z-index: 1000;
-  transition: all 0.5s;
   display: flex;
   flex-direction: column;
 }
@@ -221,6 +224,6 @@ select {
 }
 
 .hidden {
-  visibility: hidden;
+  display: none;
   opacity: 0;
 }
