@@ -10,8 +10,7 @@ export default class UI {
   }
 
   setupEventListeners() {
-    document.addEventListener('keydown', this.handleKeyboardInput.bind(this));
-
+    let a = 2;
     const btnOpenModal = document.querySelector('.add-task-btn');
     const btnCloseModal = document.querySelector('.btn-close-modal');
     const btnAddTask = document.querySelector('.btn-confirm-add');
@@ -27,6 +26,22 @@ export default class UI {
       'click',
       this.toggleModalVisibility.bind(this, false)
     );
+
+    document.addEventListener('keydown', this.handleKeyboardInput.bind(this));
+    document
+      .querySelector('.overlay')
+      .addEventListener('click', this.toggleModalVisibility.bind(this, false));
+
+    // event delegation
+    document
+      .querySelector('.task-wrapper')
+      .addEventListener('click', this.handleTaskFunctions.bind(this));
+  }
+
+  handleTaskFunctions(e) {
+    if (e.target.closest('.delete')) {
+      this.handleDeleteTask(e);
+    }
   }
 
   handleAddTask() {
@@ -60,7 +75,8 @@ export default class UI {
     this.#tasks.push({
       name: taskName.value.trim(),
       type: this.#getSelectedOption(typeSelect),
-      importance: this.#getSelectedOption(importanceSelect)
+      importance: this.#getSelectedOption(importanceSelect),
+      id: Date.now()
     });
   }
 
@@ -68,8 +84,8 @@ export default class UI {
     const taskWrapper = document.querySelector('.task-wrapper');
     const newTask = this.#tasks[this.#tasks.length - 1];
 
-    const taskRow = `              
-      <div class="task-row">
+    const taskRow = `
+      <div class="task-row" data-id="${newTask.id}">
         <div class="task-name-container">
           <p class="task-name">${newTask.name}</p>
           <p class="task-type">${newTask.type}</p>
@@ -91,7 +107,7 @@ export default class UI {
               />
             </svg>
           </div>
-          <div class="btn btn-task trash">
+          <div class="btn btn-task delete">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -112,5 +128,17 @@ export default class UI {
       </div>`;
 
     taskWrapper.insertAdjacentHTML('beforeend', taskRow);
+  }
+
+  handleDeleteTask(e) {
+    const taskRow = e.target.closest('.task-row');
+    const taskId = +taskRow.dataset.id;
+    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
+
+    taskRow.remove();
+    // if (taskIndex !== -1) {
+    //   this.#tasks.splice(taskIndex, 1);
+    // }
+    this.#tasks.splice(taskIndex, 1);
   }
 }
