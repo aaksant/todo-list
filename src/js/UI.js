@@ -10,7 +10,6 @@ export default class UI {
   }
 
   setupEventListeners() {
-    let a = 2;
     const btnOpenModal = document.querySelector('.add-task-btn');
     const btnCloseModal = document.querySelector('.btn-close-modal');
     const btnAddTask = document.querySelector('.btn-confirm-add');
@@ -38,12 +37,6 @@ export default class UI {
       .addEventListener('click', this.handleTaskFunctions.bind(this));
   }
 
-  handleTaskFunctions(e) {
-    if (e.target.closest('.delete')) {
-      this.handleDeleteTask(e);
-    }
-  }
-
   handleAddTask() {
     const inputTaskName = document.getElementById('taskName');
     const typeSelect = document.getElementById('type');
@@ -52,6 +45,25 @@ export default class UI {
     this.appendTask(inputTaskName, typeSelect, importanceSelect);
     this.renderNewTask();
     this.toggleModalVisibility(false);
+  }
+
+  handleDeleteTask(e) {
+    const taskRow = e.target.closest('.task-row');
+    const taskId = +taskRow.dataset.id;
+    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
+
+    taskRow.remove();
+    this.#tasks.splice(taskIndex, 1);
+  }
+
+  handleTaskFunctions(e) {
+    if (e.target.closest('.delete')) {
+      this.handleDeleteTask(e);
+    }
+  }
+
+  handleKeyboardInput(e) {
+    if (e.key === 'Escape') this.toggleModalVisibility(false);
   }
 
   toggleModalVisibility(isVisible) {
@@ -67,10 +79,6 @@ export default class UI {
     }
   }
 
-  handleKeyboardInput(e) {
-    if (e.key === 'Escape') this.toggleModalVisibility(false);
-  }
-
   appendTask(taskName, typeSelect, importanceSelect) {
     this.#tasks.push({
       name: taskName.value.trim(),
@@ -83,9 +91,10 @@ export default class UI {
   renderNewTask() {
     const taskWrapper = document.querySelector('.task-wrapper');
     const newTask = this.#tasks[this.#tasks.length - 1];
+    const importanceBorder = this.getImportanceBorder(newTask.importance);
 
     const taskRow = `
-      <div class="task-row" data-id="${newTask.id}">
+      <div class="task-row ${importanceBorder}" data-id="${newTask.id}">
         <div class="task-name-container">
           <p class="task-name">${newTask.name}</p>
           <p class="task-type">${newTask.type}</p>
@@ -130,15 +139,14 @@ export default class UI {
     taskWrapper.insertAdjacentHTML('beforeend', taskRow);
   }
 
-  handleDeleteTask(e) {
-    const taskRow = e.target.closest('.task-row');
-    const taskId = +taskRow.dataset.id;
-    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
-
-    taskRow.remove();
-    // if (taskIndex !== -1) {
-    //   this.#tasks.splice(taskIndex, 1);
-    // }
-    this.#tasks.splice(taskIndex, 1);
+  getImportanceBorder(importance) {
+    switch (importance) {
+      case 'High':
+        return 'importance-high';
+      case 'Medium':
+        return 'importance-medium';
+      case 'Low':
+        return 'importance-low';
+    }
   }
 }
