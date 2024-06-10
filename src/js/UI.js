@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 export default class UI {
   #tasks = [];
 
@@ -72,10 +74,11 @@ export default class UI {
 
   appendTask(taskName, typeSelect, importanceSelect) {
     this.#tasks.push({
+      id: Date.now(),
       name: taskName.value.trim(),
       type: this.#getSelectedOption(typeSelect),
       importance: this.#getSelectedOption(importanceSelect),
-      id: Date.now()
+      date: format(new Date(), 'dd/MM/yyyy')
     });
   }
 
@@ -95,10 +98,8 @@ export default class UI {
   renderNewTask() {
     const taskWrapper = document.querySelector('.task-wrapper');
     const newTask = this.#tasks[this.#tasks.length - 1];
-
-    // Get the class based on the importance level
     const importanceClass = this.getImportanceClass(newTask.importance);
-
+    
     const taskRow = `
       <div class="task-row ${importanceClass}" data-id="${newTask.id}">
         <div class="task-name-container">
@@ -138,7 +139,7 @@ export default class UI {
               />
             </svg>
           </div>
-          <p class="task-date">02/06/2024</p>
+          <p class="task-date">${newTask.date}</p>
         </div>
       </div>`;
 
