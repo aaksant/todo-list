@@ -108,8 +108,26 @@ h2 {
   box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
   border-radius: 5px;
-  border-right: 7px solid red;
   margin-bottom: 18px;
+}
+
+#no-tasks-message {
+  text-align: center;
+  font-size: 1.2em;
+  color: grey;
+  margin-top: 50px;
+}
+
+.task-row.importance-high {
+  border-right: 7px solid red;
+}
+
+.task-row.importance-medium {
+  border-right: 7px solid yellow;
+}
+
+.task-row.importance-low {
+  border-right: 7px solid green;
 }
 
 .task-name,
@@ -137,12 +155,12 @@ h2 {
   background-color: lightgreen;
 }
 
-.trash {
+.delete {
   background-color: salmon;
 }
 
 .edit:hover,
-.trash:hover {
+.delete:hover {
   filter: brightness(95%);
 }
 

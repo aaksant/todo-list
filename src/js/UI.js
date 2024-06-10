@@ -7,6 +7,7 @@ export default class UI {
 
   init() {
     this.setupEventListeners();
+    this.checkTasksAvailability();
   }
 
   setupEventListeners() {
@@ -31,10 +32,15 @@ export default class UI {
       .querySelector('.overlay')
       .addEventListener('click', this.toggleModalVisibility.bind(this, false));
 
-    // event delegation
     document
       .querySelector('.task-wrapper')
       .addEventListener('click', this.handleTaskFunctions.bind(this));
+  }
+
+  handleTaskFunctions(event) {
+    if (event.target.closest('.delete')) {
+      this.handleDeleteTask(event);
+    }
   }
 
   handleAddTask() {
@@ -45,25 +51,6 @@ export default class UI {
     this.appendTask(inputTaskName, typeSelect, importanceSelect);
     this.renderNewTask();
     this.toggleModalVisibility(false);
-  }
-
-  handleDeleteTask(e) {
-    const taskRow = e.target.closest('.task-row');
-    const taskId = +taskRow.dataset.id;
-    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
-
-    taskRow.remove();
-    this.#tasks.splice(taskIndex, 1);
-  }
-
-  handleTaskFunctions(e) {
-    if (e.target.closest('.delete')) {
-      this.handleDeleteTask(e);
-    }
-  }
-
-  handleKeyboardInput(e) {
-    if (e.key === 'Escape') this.toggleModalVisibility(false);
   }
 
   toggleModalVisibility(isVisible) {
@@ -79,6 +66,10 @@ export default class UI {
     }
   }
 
+  handleKeyboardInput(e) {
+    if (e.key === 'Escape') this.toggleModalVisibility(false);
+  }
+
   appendTask(taskName, typeSelect, importanceSelect) {
     this.#tasks.push({
       name: taskName.value.trim(),
@@ -88,13 +79,28 @@ export default class UI {
     });
   }
 
+  getImportanceClass(importance) {
+    switch (importance) {
+      case 'High':
+        return 'importance-high';
+      case 'Medium':
+        return 'importance-medium';
+      case 'Low':
+        return 'importance-low';
+      default:
+        return '';
+    }
+  }
+
   renderNewTask() {
     const taskWrapper = document.querySelector('.task-wrapper');
     const newTask = this.#tasks[this.#tasks.length - 1];
-    const importanceBorder = this.getImportanceBorder(newTask.importance);
+
+    // Get the class based on the importance level
+    const importanceClass = this.getImportanceClass(newTask.importance);
 
     const taskRow = `
-      <div class="task-row ${importanceBorder}" data-id="${newTask.id}">
+      <div class="task-row ${importanceClass}" data-id="${newTask.id}">
         <div class="task-name-container">
           <p class="task-name">${newTask.name}</p>
           <p class="task-type">${newTask.type}</p>
@@ -137,16 +143,26 @@ export default class UI {
       </div>`;
 
     taskWrapper.insertAdjacentHTML('beforeend', taskRow);
+
+    this.checkTasksAvailability();
   }
 
-  getImportanceBorder(importance) {
-    switch (importance) {
-      case 'High':
-        return 'importance-high';
-      case 'Medium':
-        return 'importance-medium';
-      case 'Low':
-        return 'importance-low';
-    }
+  handleDeleteTask(e) {
+    const taskRow = e.target.closest('.task-row');
+    const taskId = Number(taskRow.dataset.id);
+    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
+
+    taskRow.remove();
+    this.#tasks.splice(taskIndex, 1);
+
+    this.checkTasksAvailability();
+  }
+
+  checkTasksAvailability() {
+    const noTasksMessage = document.getElementById('no-tasks-message');
+
+    this.#tasks.length === 0
+      ? noTasksMessage.classList.remove('hidden')
+      : noTasksMessage.classList.add('hidden');
   }
 }
