@@ -37,22 +37,10 @@ export default class UI {
     document
       .querySelector('.task-wrapper')
       .addEventListener('click', this.handleTaskFunctions.bind(this));
-  }
 
-  handleTaskFunctions(event) {
-    if (event.target.closest('.delete')) {
-      this.handleDeleteTask(event);
-    }
-  }
-
-  handleAddTask() {
-    const inputTaskName = document.getElementById('taskName');
-    const typeSelect = document.getElementById('type');
-    const importanceSelect = document.getElementById('importance');
-
-    this.appendTask(inputTaskName, typeSelect, importanceSelect);
-    this.renderNewTask();
-    this.toggleModalVisibility(false);
+    document
+      .querySelector('.sidebar')
+      .addEventListener('click', this.handleNavSwitch.bind(this));
   }
 
   toggleModalVisibility(isVisible) {
@@ -70,6 +58,56 @@ export default class UI {
 
   handleKeyboardInput(e) {
     if (e.key === 'Escape') this.toggleModalVisibility(false);
+  }
+
+  handleTaskFunctions(e) {
+    if (e.target.closest('.delete')) {
+      this.handleDeleteTask(e);
+    }
+  }
+
+  handleAddTask() {
+    const inputTaskName = document.getElementById('taskName');
+    const typeSelect = document.getElementById('type');
+    const importanceSelect = document.getElementById('importance');
+
+    this.appendTask(inputTaskName, typeSelect, importanceSelect);
+    this.renderNewTask();
+    this.toggleModalVisibility(false);
+  }
+
+  handleDeleteTask(e) {
+    const taskRow = e.target.closest('.task-row');
+    const taskId = Number(taskRow.dataset.id);
+    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
+
+    taskRow.remove();
+    this.#tasks.splice(taskIndex, 1);
+
+    this.checkTasksAvailability();
+  }
+
+  handleNavSwitch(e) {
+    const navBtn = e.target.closest('.nav-btn');
+    if (!navBtn) return;
+
+    const type = navBtn.id;
+
+    document
+      .querySelectorAll('.nav-btn')
+      .forEach(btn => btn.classList.remove('nav-active'));
+
+    navBtn.classList.add('nav-active');
+
+    document
+      .querySelectorAll('.type')
+      .forEach(section => section.classList.add('hidden'));
+
+    document.querySelector(`.${type}`).classList.remove('hidden');
+    document
+      .querySelector(`.${type}`)
+      .querySelector('#no-tasks-message')
+      .classList.remove('hidden');
   }
 
   appendTask(taskName, typeSelect, importanceSelect) {
@@ -99,62 +137,51 @@ export default class UI {
     const taskWrapper = document.querySelector('.task-wrapper');
     const newTask = this.#tasks[this.#tasks.length - 1];
     const importanceClass = this.getImportanceClass(newTask.importance);
-    
+
     const taskRow = `
       <div class="task-row ${importanceClass}" data-id="${newTask.id}">
-        <div class="task-name-container">
-          <p class="task-name">${newTask.name}</p>
-          <p class="task-type">${newTask.type}</p>
-        </div>
-        <div class="task-function">
-          <div class="btn btn-task edit">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="icon"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
-              />
-            </svg>
+          <div class="task-name-container">
+              <p class="task-name">${newTask.name}</p>
+              <p class="task-type">${newTask.type}</p>
           </div>
-          <div class="btn btn-task delete">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="icon"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-              />
-            </svg>
+          <div class="task-function">
+              <div class="btn btn-task edit">
+                  <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="icon"
+                  >
+                      <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                      />
+                  </svg>
+              </div>
+              <div class="btn btn-task delete">
+                  <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="icon"
+                  >
+                      <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                      />
+                  </svg>
+              </div>
+              <p class="task-date">${newTask.date}</p>
           </div>
-          <p class="task-date">${newTask.date}</p>
-        </div>
       </div>`;
 
     taskWrapper.insertAdjacentHTML('beforeend', taskRow);
-
-    this.checkTasksAvailability();
-  }
-
-  handleDeleteTask(e) {
-    const taskRow = e.target.closest('.task-row');
-    const taskId = Number(taskRow.dataset.id);
-    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
-
-    taskRow.remove();
-    this.#tasks.splice(taskIndex, 1);
 
     this.checkTasksAvailability();
   }
