@@ -100,8 +100,8 @@ export default class UI {
     navBtn.classList.add('nav-active');
 
     document
-      .querySelectorAll('.type')
-      .forEach(section => section.classList.add('hidden'));
+      .querySelectorAll('.type-container')
+      .forEach(typeSection => typeSection.classList.add('hidden'));
 
     document.querySelector(`.${type}`).classList.remove('hidden');
     document
@@ -187,10 +187,25 @@ export default class UI {
   }
 
   checkTasksAvailability() {
-    const noTasksMessage = document.getElementById('no-tasks-message');
+    const typeContainers = document.querySelectorAll('.type-container');
+    const taskTypes = ['inbox', 'today', 'planned'];
 
-    this.#tasks.length === 0
-      ? noTasksMessage.classList.remove('hidden')
-      : noTasksMessage.classList.add('hidden');
+    typeContainers.forEach(typeContainer => {
+      const type =
+        [...typeContainer.classList].find(typeClass => taskTypes.includes(typeClass)) || '';
+
+      const tasksForType =
+        type === 'inbox'
+          ? this.#tasks
+          : this.#tasks.filter(task => task.type.toLowerCase() === type);
+
+      const noTasksMessage = typeContainer.querySelector('#no-tasks-message');
+
+      if (tasksForType.length !== 0) {
+        noTasksMessage.style.display = 'none';
+      } else {
+        noTasksMessage.style.display = 'block';
+      }
+    });
   }
 }
