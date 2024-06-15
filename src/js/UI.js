@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import _ from 'lodash';
 
 export default class UI {
   #tasks = [];
@@ -16,6 +17,9 @@ export default class UI {
     const btnOpenModal = document.querySelector('.add-task-btn');
     const btnCloseModal = document.querySelector('.btn-close-modal');
     const btnAddTask = document.querySelector('.btn-confirm-add');
+    const overlay = document.querySelector('.overlay');
+    const taskWrappers = document.querySelectorAll('.task-wrapper');
+    const sidebar = document.querySelector('.sidebar');
 
     btnOpenModal.addEventListener(
       'click',
@@ -29,18 +33,20 @@ export default class UI {
       this.toggleModalVisibility.bind(this, false)
     );
 
+    // Escape keydown support
     document.addEventListener('keydown', this.handleKeyboardInput.bind(this));
-    document
-      .querySelector('.overlay')
-      .addEventListener('click', this.toggleModalVisibility.bind(this, false));
 
-    document
-      .querySelector('.task-wrapper')
-      .addEventListener('click', this.handleTaskFunctions.bind(this));
+    // Overlay click
+    overlay.addEventListener(
+      'click',
+      this.toggleModalVisibility.bind(this, false)
+    );
 
-    document
-      .querySelector('.sidebar')
-      .addEventListener('click', this.handleNavSwitch.bind(this));
+    taskWrappers.forEach(wrapper =>
+      wrapper.addEventListener('click', this.handleTaskFunctions.bind(this))
+    );
+
+    sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
   }
 
   toggleModalVisibility(isVisible) {
@@ -56,6 +62,33 @@ export default class UI {
     }
   }
 
+  getModalInput() {
+    return {
+      name: document.getElementById('taskName'),
+      typeSelect: document.getElementById('type'),
+      importanceSelect: document.getElementById('importance')
+    };
+  }
+
+  clearModal(name, typeSelect, importanceSelect) {
+    name.value = '';
+    typeSelect.selectedIndex = 0;
+    importanceSelect.selectedIndex = 0;
+  }
+
+  getImportanceClass(importance) {
+    switch (importance) {
+      case 'High':
+        return 'importance-high';
+      case 'Medium':
+        return 'importance-medium';
+      case 'Low':
+        return 'importance-low';
+      default:
+        return '';
+    }
+  }
+
   handleKeyboardInput(e) {
     if (e.key === 'Escape') this.toggleModalVisibility(false);
   }
@@ -66,24 +99,13 @@ export default class UI {
     }
   }
 
-  getModalInput() {
-    return {
-      name: document.getElementById('taskName'),
-      typeSelect: document.getElementById('type'),
-      importanceSelect: document.getElementById('importance')
-    };
-  }
-
   handleAddTask() {
     const input = this.getModalInput();
 
-    this.appendTask(
-      input.name,
-      input.typeSelect,
-      input.importanceSelect
-    );
+    this.appendTask(input.name, input.typeSelect, input.importanceSelect);
     this.renderNewTask();
     this.toggleModalVisibility(false);
+    this.clearModal(input.name, input.typeSelect, input.importanceSelect);
   }
 
   handleDeleteTask(e) {
@@ -126,45 +148,26 @@ export default class UI {
     this.#tasks.push({
       id: Date.now(),
       name: taskName.value.trim(),
-      type: this.#getSelectedOption(typeSelect),
+      type: this.#getSelectedOption(typeSelect).toLowerCase(),
       importance: this.#getSelectedOption(importanceSelect),
       date: format(new Date(), 'dd/MM/yyyy')
     });
-  }
-
-  getImportanceClass(importance) {
-    switch (importance) {
-      case 'High':
-        return 'importance-high';
-      case 'Medium':
-        return 'importance-medium';
-      case 'Low':
-        return 'importance-low';
-      default:
-        return '';
-    }
   }
 
   renderNewTask() {
     const newTask = this.#tasks[this.#tasks.length - 1];
     const importanceClass = this.getImportanceClass(newTask.importance);
 
-    // Render the task in the Inbox
-    this.placeTaskInContainer('inbox', newTask, importanceClass);
+    this.prepareTaskInContainer('inbox', newTask, importanceClass);
 
-    // Render the task in its respective type
-    if (newTask.type.toLowerCase() !== 'inbox') {
-      this.placeTaskInContainer(
-        newTask.type.toLowerCase(),
-        newTask,
-        importanceClass
-      );
+    if (newTask.type !== 'inbox') {
+      this.prepareTaskInContainer(newTask.type, newTask, importanceClass);
     }
 
     this.checkTasksAvailability();
   }
 
-  placeTaskInContainer(containerType, task, importanceClass) {
+  prepareTaskInContainer(containerType, task, importanceClass) {
     const taskWrapper = document.querySelector(
       `.${containerType} .task-wrapper`
     );
@@ -173,7 +176,7 @@ export default class UI {
       <div class="task-row ${importanceClass}" data-id="${task.id}">
           <div class="task-name-container">
               <p class="task-name">${task.name}</p>
-              <p class="task-type">${task.type}</p>
+              <p class="task-type">${_.capitalize(task.type)}</p>
           </div>
           <div class="task-function">
               <div class="btn btn-task edit">
@@ -228,7 +231,7 @@ export default class UI {
       const tasksForType =
         type === 'inbox'
           ? this.#tasks
-          : this.#tasks.filter(task => task.type.toLowerCase() === type);
+          : this.#tasks.filter(task => task.type === type);
 
       const noTasksMessage = typeContainer.querySelector('.no-tasks-message');
 
