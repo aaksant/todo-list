@@ -66,12 +66,22 @@ export default class UI {
     }
   }
 
-  handleAddTask() {
-    const inputTaskName = document.getElementById('taskName');
-    const typeSelect = document.getElementById('type');
-    const importanceSelect = document.getElementById('importance');
+  getModalInput() {
+    return {
+      name: document.getElementById('taskName'),
+      typeSelect: document.getElementById('type'),
+      importanceSelect: document.getElementById('importance')
+    };
+  }
 
-    this.appendTask(inputTaskName, typeSelect, importanceSelect);
+  handleAddTask() {
+    const input = this.getModalInput();
+
+    this.appendTask(
+      input.name,
+      input.typeSelect,
+      input.importanceSelect
+    );
     this.renderNewTask();
     this.toggleModalVisibility(false);
   }
@@ -79,10 +89,12 @@ export default class UI {
   handleDeleteTask(e) {
     const taskRow = e.target.closest('.task-row');
     const taskId = Number(taskRow.dataset.id);
-    const taskIndex = this.#tasks.findIndex(task => task.id === taskId);
 
-    taskRow.remove();
-    this.#tasks.splice(taskIndex, 1);
+    this.#tasks = this.#tasks.filter(task => task.id !== taskId);
+
+    document
+      .querySelectorAll(`.task-row[data-id="${taskId}"]`)
+      .forEach(row => row.remove());
 
     this.checkTasksAvailability();
   }
@@ -106,7 +118,7 @@ export default class UI {
     document.querySelector(`.${type}`).classList.remove('hidden');
     document
       .querySelector(`.${type}`)
-      .querySelector('#no-tasks-message')
+      .querySelector('.no-tasks-message')
       .classList.remove('hidden');
   }
 
@@ -134,15 +146,34 @@ export default class UI {
   }
 
   renderNewTask() {
-    const taskWrapper = document.querySelector('.task-wrapper');
     const newTask = this.#tasks[this.#tasks.length - 1];
     const importanceClass = this.getImportanceClass(newTask.importance);
 
+    // Render the task in the Inbox
+    this.placeTaskInContainer('inbox', newTask, importanceClass);
+
+    // Render the task in its respective type
+    if (newTask.type.toLowerCase() !== 'inbox') {
+      this.placeTaskInContainer(
+        newTask.type.toLowerCase(),
+        newTask,
+        importanceClass
+      );
+    }
+
+    this.checkTasksAvailability();
+  }
+
+  placeTaskInContainer(containerType, task, importanceClass) {
+    const taskWrapper = document.querySelector(
+      `.${containerType} .task-wrapper`
+    );
+
     const taskRow = `
-      <div class="task-row ${importanceClass}" data-id="${newTask.id}">
+      <div class="task-row ${importanceClass}" data-id="${task.id}">
           <div class="task-name-container">
-              <p class="task-name">${newTask.name}</p>
-              <p class="task-type">${newTask.type}</p>
+              <p class="task-name">${task.name}</p>
+              <p class="task-type">${task.type}</p>
           </div>
           <div class="task-function">
               <div class="btn btn-task edit">
@@ -177,13 +208,11 @@ export default class UI {
                       />
                   </svg>
               </div>
-              <p class="task-date">${newTask.date}</p>
+              <p class="task-date">${task.date}</p>
           </div>
       </div>`;
 
     taskWrapper.insertAdjacentHTML('beforeend', taskRow);
-
-    this.checkTasksAvailability();
   }
 
   checkTasksAvailability() {
@@ -192,14 +221,16 @@ export default class UI {
 
     typeContainers.forEach(typeContainer => {
       const type =
-        [...typeContainer.classList].find(typeClass => taskTypes.includes(typeClass)) || '';
+        [...typeContainer.classList].find(typeClass =>
+          taskTypes.includes(typeClass)
+        ) || '';
 
       const tasksForType =
         type === 'inbox'
           ? this.#tasks
           : this.#tasks.filter(task => task.type.toLowerCase() === type);
 
-      const noTasksMessage = typeContainer.querySelector('#no-tasks-message');
+      const noTasksMessage = typeContainer.querySelector('.no-tasks-message');
 
       if (tasksForType.length !== 0) {
         noTasksMessage.style.display = 'none';
