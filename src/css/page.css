@@ -71,7 +71,7 @@ h2 {
   flex-direction: column;
   justify-content: center;
   gap: 32px;
-  border-right: 2px solid black;
+  border-right: 1px solid black;
 }
 
 .nav {
@@ -82,12 +82,20 @@ h2 {
   gap: 16px;
 }
 
-.nav .btn {
+.nav .nav-btn {
   font-size: 1.25rem;
 }
 
-.nav .btn:hover {
+.nav .nav-btn:hover {
   color: red;
+}
+
+.nav-active {
+  color: red;
+}
+
+.nav-btn:not(.nav-active)::after {
+  color: black;
 }
 
 .main {
@@ -95,7 +103,7 @@ h2 {
   padding: 0 24px;
 }
 
-.active-nav {
+.type-title {
   font-size: 2rem;
   margin-bottom: 24px;
 }
@@ -111,7 +119,7 @@ h2 {
   margin-bottom: 18px;
 }
 
-#no-tasks-message {
+.no-tasks-message {
   text-align: center;
   font-size: 1.2em;
   color: grey;
@@ -180,6 +188,7 @@ h2 {
   z-index: 1000;
   display: flex;
   flex-direction: column;
+  border-radius: 0.75rem;
 }
 
 .modal-header {
