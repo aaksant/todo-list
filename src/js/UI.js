@@ -20,6 +20,7 @@ export default class UI {
     const overlay = document.querySelector('.overlay');
     const taskWrappers = document.querySelectorAll('.task-wrapper');
     const sidebar = document.querySelector('.sidebar');
+    const typeSelect = document.getElementById('type');
 
     btnOpenModal.addEventListener(
       'click',
@@ -47,6 +48,9 @@ export default class UI {
     );
 
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
+
+    // Change type from 'Today' to 'Planned'
+    typeSelect.addEventListener('change', this.handleTypeChange.bind(this));
   }
 
   toggleModalVisibility(isVisible) {
@@ -66,11 +70,12 @@ export default class UI {
     return {
       name: document.getElementById('taskName'),
       typeSelect: document.getElementById('type'),
-      importanceSelect: document.getElementById('importance')
+      importanceSelect: document.getElementById('importance'),
+      date: document.getElementById('date').value || new Date()
     };
   }
 
-  clearModal(name, typeSelect, importanceSelect) {
+  clearModal(name, typeSelect, importanceSelect, date) {
     name.value = '';
     typeSelect.selectedIndex = 0;
     importanceSelect.selectedIndex = 0;
@@ -99,13 +104,24 @@ export default class UI {
     }
   }
 
-  handleAddTask() {
-    const input = this.getModalInput();
+  handleTypeChange(e) {
+    const dateInput = document.querySelector('.form-row.hidden');
 
-    this.appendTask(input.name, input.typeSelect, input.importanceSelect);
+    if (e.target.value === 'Planned') {
+      dateInput.classList.remove('hidden');
+    } else {
+      dateInput.classList.add('hidden');
+    }
+  }
+
+  handleAddTask() {
+    const { name, typeSelect, importanceSelect, date } = this.getModalInput();
+
+    this.appendTask(name, typeSelect, importanceSelect, date);
     this.renderNewTask();
+    
     this.toggleModalVisibility(false);
-    this.clearModal(input.name, input.typeSelect, input.importanceSelect);
+    this.clearModal(name, typeSelect, importanceSelect, date);
   }
 
   handleDeleteTask(e) {
@@ -144,13 +160,13 @@ export default class UI {
       .classList.remove('hidden');
   }
 
-  appendTask(taskName, typeSelect, importanceSelect) {
+  appendTask(taskName, typeSelect, importanceSelect, date) {
     this.#tasks.push({
       id: Date.now(),
       name: taskName.value.trim(),
       type: this.#getSelectedOption(typeSelect).toLowerCase(),
       importance: this.#getSelectedOption(importanceSelect),
-      date: format(new Date(), 'dd/MM/yyyy')
+      date: format(date, 'dd/MM/yyyy')
     });
   }
 
@@ -158,16 +174,16 @@ export default class UI {
     const newTask = this.#tasks[this.#tasks.length - 1];
     const importanceClass = this.getImportanceClass(newTask.importance);
 
-    this.prepareTaskInContainer('inbox', newTask, importanceClass);
+    this.createTaskRow('inbox', newTask, importanceClass);
 
     if (newTask.type !== 'inbox') {
-      this.prepareTaskInContainer(newTask.type, newTask, importanceClass);
+      this.createTaskRow(newTask.type, newTask, importanceClass);
     }
 
     this.checkTasksAvailability();
   }
 
-  prepareTaskInContainer(containerType, task, importanceClass) {
+  createTaskRow(containerType, task, importanceClass) {
     const taskWrapper = document.querySelector(
       `.${containerType} .task-wrapper`
     );
