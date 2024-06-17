@@ -1,16 +1,18 @@
 import { format } from 'date-fns';
 import _ from 'lodash';
 
+import TasksManager from './TasksManager';
+
+const tasksManager = new TasksManager();
+
 export default class UI {
-  #tasks = [];
-
-  #getSelectedOption(option) {
-    return option.options[option.selectedIndex].text;
-  }
-
   init() {
     this.setupEventListeners();
     this.checkTasksAvailability();
+  }
+
+  #getSelectedOption(option) {
+    return option.options[option.selectedIndex].text;
   }
 
   setupEventListeners() {
@@ -50,7 +52,7 @@ export default class UI {
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
 
     // Change type from 'Today' to 'Planned'
-    typeSelect.addEventListener('change', this.handleTypeChange.bind(this));
+    // typeSelect.addEventListener('change', this.handleTypeChange.bind(this));
   }
 
   toggleModalVisibility(isVisible) {
@@ -67,19 +69,25 @@ export default class UI {
   }
 
   getModalInput() {
+    const taskName = document.getElementById('taskName');
+    const typeSelect = document.getElementById('type');
+    const importanceSelect = document.getElementById('importance');
+    const dateInput = document.getElementById('date');
+
     return {
-      name: document.getElementById('taskName'),
-      typeSelect: document.getElementById('type'),
-      importanceSelect: document.getElementById('importance'),
-      date: document.getElementById('date').value || new Date()
+      name: taskName.value.trim(),
+      typeSelect: this.#getSelectedOption(typeSelect).toLowerCase(),
+      importanceSelect: this.#getSelectedOption(importanceSelect),
+      date: format(dateInput.value || new Date(), 'dd/MM/yyyy')
     };
   }
 
-  clearModal(name, typeSelect, importanceSelect, date) {
-    name.value = '';
-    typeSelect.selectedIndex = 0;
-    importanceSelect.selectedIndex = 0;
-  }
+  // FIXME:
+  // clearModal(name, typeSelect, importanceSelect, date) {
+  //   name = '';
+  //   typeSelect.selectedIndex = 0;
+  //   importanceSelect.selectedIndex = 0;
+  // }
 
   getImportanceClass(importance) {
     switch (importance) {
@@ -104,31 +112,32 @@ export default class UI {
     }
   }
 
-  handleTypeChange(e) {
-    const dateInput = document.querySelector('.form-row.hidden');
+  // FIXME: Changing type from Planned to Today causes an error
+  // handleTypeChange(e) {
+  //   const dateInput = document.querySelector('.form-row.hidden');
 
-    if (e.target.value === 'Planned') {
-      dateInput.classList.remove('hidden');
-    } else {
-      dateInput.classList.add('hidden');
-    }
-  }
+  //   if (e.target.value === 'Planned') {
+  //     dateInput.classList.remove('hidden');
+  //   } else {
+  //     dateInput.classList.add('hidden');
+  //   }
+  // }
 
   handleAddTask() {
     const { name, typeSelect, importanceSelect, date } = this.getModalInput();
 
-    this.appendTask(name, typeSelect, importanceSelect, date);
+    tasksManager.appendTask(name, typeSelect, importanceSelect, date);
     this.renderNewTask();
-    
+
     this.toggleModalVisibility(false);
-    this.clearModal(name, typeSelect, importanceSelect, date);
+    // this.clearModal(name, typeSelect, importanceSelect, date);
   }
 
   handleDeleteTask(e) {
     const taskRow = e.target.closest('.task-row');
     const taskId = Number(taskRow.dataset.id);
 
-    this.#tasks = this.#tasks.filter(task => task.id !== taskId);
+    tasksManager.deleteTask(taskId);
 
     document
       .querySelectorAll(`.task-row[data-id="${taskId}"]`)
@@ -160,18 +169,9 @@ export default class UI {
       .classList.remove('hidden');
   }
 
-  appendTask(taskName, typeSelect, importanceSelect, date) {
-    this.#tasks.push({
-      id: Date.now(),
-      name: taskName.value.trim(),
-      type: this.#getSelectedOption(typeSelect).toLowerCase(),
-      importance: this.#getSelectedOption(importanceSelect),
-      date: format(date, 'dd/MM/yyyy')
-    });
-  }
-
   renderNewTask() {
-    const newTask = this.#tasks[this.#tasks.length - 1];
+    const tasks = tasksManager.tasks;
+    const newTask = tasks[tasks.length - 1];
     const importanceClass = this.getImportanceClass(newTask.importance);
 
     this.createTaskRow('inbox', newTask, importanceClass);
@@ -192,7 +192,10 @@ export default class UI {
       <div class="task-row ${importanceClass}" data-id="${task.id}">
           <div class="task-name-container">
               <p class="task-name">${task.name}</p>
-              <p class="task-type">${_.capitalize(task.type)}</p>
+              <span class="task-type">${_.capitalize(task.type)}</span>
+              <span class="task-importance">${
+                importanceClass.split('-')[1]
+              }</span>
           </div>
           <div class="task-function">
               <div class="btn btn-task edit">
@@ -235,6 +238,7 @@ export default class UI {
   }
 
   checkTasksAvailability() {
+    const tasks = tasksManager.tasks;
     const typeContainers = document.querySelectorAll('.type-container');
     const taskTypes = ['inbox', 'today', 'planned'];
 
@@ -245,9 +249,7 @@ export default class UI {
         ) || '';
 
       const tasksForType =
-        type === 'inbox'
-          ? this.#tasks
-          : this.#tasks.filter(task => task.type === type);
+        type === 'inbox' ? tasks : tasks.filter(task => task.type === type);
 
       const noTasksMessage = typeContainer.querySelector('.no-tasks-message');
 
