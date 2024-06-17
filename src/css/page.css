@@ -126,16 +126,19 @@ h2 {
   margin-top: 50px;
 }
 
-.task-row.importance-high {
-  border-right: 7px solid red;
+.task-row.importance-high .task-importance {
+  background-color: #fecaca;
+  color: #dc2626;
 }
 
-.task-row.importance-medium {
-  border-right: 7px solid yellow;
+.task-row.importance-medium .task-importance {
+  background-color: #fde68a;
+  color: #d97706;
 }
 
-.task-row.importance-low {
-  border-right: 7px solid green;
+.task-row.importance-low .task-importance {
+  background-color: #bbf7d0;
+  color: #16a34a;
 }
 
 .task-name,
@@ -145,6 +148,15 @@ h2 {
 
 .task-name {
   font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.task-importance {
+  margin-left: 12px;
+  padding: 4px 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 0.75rem;
 }
 
 .task-function {
