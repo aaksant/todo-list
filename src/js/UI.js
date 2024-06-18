@@ -1,8 +1,9 @@
 import { format } from 'date-fns';
+import { isSameDay } from 'date-fns/isSameDay';
 import _ from 'lodash';
+
 import editSvg from '../assets/edit.svg';
 import trashSvg from '../assets/trash.svg';
-
 import TasksManager from './TasksManager';
 
 const tasksManager = new TasksManager();
@@ -51,8 +52,6 @@ export default class UI {
     );
 
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
-
-    // Change type from 'Today' to 'Planned'
   }
 
   toggleModalVisibility(isVisible) {
@@ -70,24 +69,29 @@ export default class UI {
 
   getModalInput() {
     const taskName = document.getElementById('taskName');
-    const typeSelect = document.getElementById('type');
     const importanceSelect = document.getElementById('importance');
     const dateInput = document.getElementById('date');
 
     return {
       name: taskName.value.trim(),
-      typeSelect: this.#getSelectedOption(typeSelect).toLowerCase(),
       importanceSelect: this.#getSelectedOption(importanceSelect),
       date: format(dateInput.value || new Date(), 'dd/MM/yyyy')
     };
   }
 
-  // TODO: Clear modal
   clearModal() {
     document.getElementById('taskName').value = '';
-    document.getElementById('type').selectedIndex = 0;
     document.getElementById('importance').selectedIndex = 0;
     document.getElementById('date').value = '';
+  }
+
+  toDateObject(dateStr) {
+    return dateStr
+      .split('/')
+      .map((part, i) => {
+        return i === 1 ? Number.parseInt(part) - 1 : Number.parseInt(part);
+      })
+      .reverse();
   }
 
   getImportanceClass(importance) {
@@ -113,12 +117,10 @@ export default class UI {
     }
   }
 
-  // TODO: Changing type from Planned to Today causes an error
-
   handleAddTask() {
-    const { name, typeSelect, importanceSelect, date } = this.getModalInput();
+    const { name, importanceSelect, date } = this.getModalInput();
 
-    tasksManager.appendTask(name, typeSelect, importanceSelect, date);
+    tasksManager.appendTask(name, importanceSelect, date);
     this.renderNewTask();
 
     this.toggleModalVisibility(false);
@@ -161,31 +163,36 @@ export default class UI {
       .classList.remove('hidden');
   }
 
+  // FIXME: Unmatched containerType and renderNewTask actual container results in every task is always displayed in Planned
   renderNewTask() {
     const tasks = tasksManager.tasks;
     const newTask = tasks[tasks.length - 1];
     const importanceClass = this.getImportanceClass(newTask.importance);
 
-    // Always add to Inbox first
-    this.createTaskRow('inbox', newTask, importanceClass);
+    const containerType = isSameDay(
+      new Date(...this.toDateObject(newTask.date)),
+      new Date()
+    )
+      ? 'today'
+      : 'planned';
 
-    if (newTask.type !== 'inbox') {
-      this.createTaskRow(newTask.type, newTask, importanceClass);
-    }
-
+    this.createNewTaskRow('inbox', newTask, importanceClass);
+    this.createNewTaskRow(containerType, newTask, importanceClass);
     this.checkTasksAvailability();
   }
 
-  createTaskRow(containerType, task, importanceClass) {
+  createNewTaskRow(containerType, task, importanceClass) {
     const taskWrapper = document.querySelector(
       `.${containerType} .task-wrapper`
     );
+
+    const taskType = containerType === 'today' ? 'Today' : 'Planned';
 
     const taskRow = `
       <div class="task-row ${importanceClass}" data-id="${task.id}">
           <div class="task-name-container">
               <p class="task-name">${task.name}</p>
-              <span class="task-type">${_.capitalize(task.type)}</span>
+              <span class="task-type">${taskType}</span>
               <span class="task-importance">${
                 importanceClass.split('-')[1]
               }</span>
