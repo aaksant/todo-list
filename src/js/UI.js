@@ -9,7 +9,7 @@ import TasksManager from './TasksManager';
 const tasksManager = new TasksManager();
 
 export default class UI {
-  init() {
+  constructor() {
     this.setupEventListeners();
     this.checkTasksAvailability();
   }
@@ -176,6 +176,8 @@ export default class UI {
       ? 'today'
       : 'planned';
 
+    console.log(containerType);
+
     this.createNewTaskRow('inbox', newTask, importanceClass);
     this.createNewTaskRow(containerType, newTask, importanceClass);
     this.checkTasksAvailability();
@@ -199,10 +201,10 @@ export default class UI {
           </div>
           <div class="task-function">
               <div class="btn btn-task edit">
-                <img src="${editSvg}" class="icon" alt="Edit"</img>
+                <img src="${editSvg}" class="icon" alt="Edit"/>
               </div>
               <div class="btn btn-task delete">
-                <img src="${trashSvg}" class="icon" alt="Trash"</img>
+                <img src="${trashSvg}" class="icon" alt="Trash"/>
               </div>
               <p class="task-date">${task.date}</p>
           </div>
