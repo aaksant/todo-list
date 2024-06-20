@@ -1,21 +1,40 @@
-export default class TasksManager {
-  #tasks = [];
+import { isSameDay } from 'date-fns';
 
-  get tasks() {
-    return this.#tasks;
+export default class TasksManager {
+  constructor() {
+    this.allTasks = [];
+    this.tasksForType = [];
+    this.currentTaskId = 0;
   }
 
-  appendTask(name, type, importance, date) {
-    this.#tasks.push({
-      id: Date.now(),
-      name: name,
-      type: type,
-      importance: importance,
-      date: date
+  appendTask(name, importance, date) {
+    this.allTasks.push({
+      id: this.currentTaskId++,
+      name,
+      importance,
+      date,
+      type: isSameDay(date, new Date()) ? 'Today' : 'Planned'
     });
   }
 
-  deleteTask(taskId) {
-    this.#tasks = this.#tasks.filter(task => task.id !== taskId);
+  deleteTask(id) {
+    this.allTasks = this.allTasks.filter(task => task.id !== id);
+  }
+
+  getTasks(type) {
+    switch (type) {
+      case 'inbox':
+        this.tasksForType = this.allTasks;
+        break;
+      case 'today':
+        this.tasksForType = this.allTasks.filter(task => task.type === 'Today');
+        break;
+      case 'planned':
+        this.tasksForType = this.allTasks.filter(
+          task => task.type === 'Planned'
+        );
+      default:
+        break;
+    }
   }
 }
