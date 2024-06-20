@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { isSameDay } from 'date-fns/isSameDay';
 import _ from 'lodash';
 
 import editSvg from '../assets/edit.svg';
@@ -26,26 +25,17 @@ export default class UI {
     const taskWrappers = document.querySelectorAll('.task-wrapper');
     const sidebar = document.querySelector('.sidebar');
 
-    btnOpenModal.addEventListener(
-      'click',
-      this.toggleModalVisibility.bind(this, true)
-    );
+    btnOpenModal.addEventListener('click', this.toggleModal.bind(this, true));
 
     btnAddTask.addEventListener('click', this.handleAddTask.bind(this));
 
-    btnCloseModal.addEventListener(
-      'click',
-      this.toggleModalVisibility.bind(this, false)
-    );
+    btnCloseModal.addEventListener('click', this.toggleModal.bind(this, false));
 
     // Escape keydown support
     document.addEventListener('keydown', this.handleKeyboardInput.bind(this));
 
     // Overlay click
-    overlay.addEventListener(
-      'click',
-      this.toggleModalVisibility.bind(this, false)
-    );
+    overlay.addEventListener('click', this.toggleModal.bind(this, false));
 
     taskWrappers.forEach(wrapper =>
       wrapper.addEventListener('click', this.handleTaskFunctions.bind(this))
@@ -54,7 +44,7 @@ export default class UI {
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
   }
 
-  toggleModalVisibility(isVisible) {
+  toggleModal(isVisible) {
     const modal = document.querySelector('.modal');
     const overlay = document.querySelector('.overlay');
 
@@ -67,15 +57,25 @@ export default class UI {
     }
   }
 
+  toggleNoTasksMessage(typeContainer) {
+    const noTasksMessage = typeContainer.querySelector('.no-tasks-message');
+
+    if (tasksManager.tasksForType.length !== 0) {
+      noTasksMessage.style.display = 'none';
+    } else {
+      noTasksMessage.style.display = 'block';
+    }
+  }
+
   getModalInput() {
     const taskName = document.getElementById('taskName');
     const importanceSelect = document.getElementById('importance');
     const dateInput = document.getElementById('date');
 
     return {
-      name: taskName.value.trim(),
+      name: _.capitalize(taskName.value.trim()),
       importanceSelect: this.#getSelectedOption(importanceSelect),
-      date: format(dateInput.value || new Date(), 'dd/MM/yyyy')
+      date: dateInput.value || new Date()
     };
   }
 
@@ -85,30 +85,8 @@ export default class UI {
     document.getElementById('date').value = '';
   }
 
-  toDateObject(dateStr) {
-    return dateStr
-      .split('/')
-      .map((part, i) => {
-        return i === 1 ? Number.parseInt(part) - 1 : Number.parseInt(part);
-      })
-      .reverse();
-  }
-
-  getImportanceClass(importance) {
-    switch (importance) {
-      case 'High':
-        return 'importance-high';
-      case 'Medium':
-        return 'importance-medium';
-      case 'Low':
-        return 'importance-low';
-      default:
-        return '';
-    }
-  }
-
   handleKeyboardInput(e) {
-    if (e.key === 'Escape') this.toggleModalVisibility(false);
+    if (e.key === 'Escape') this.toggleModal(false);
   }
 
   handleTaskFunctions(e) {
@@ -121,15 +99,15 @@ export default class UI {
     const { name, importanceSelect, date } = this.getModalInput();
 
     tasksManager.appendTask(name, importanceSelect, date);
-    this.renderNewTask();
+    this.renderNewTaskRow();
 
-    this.toggleModalVisibility(false);
+    this.toggleModal(false);
     this.clearModal();
   }
 
   handleDeleteTask(e) {
     const taskRow = e.target.closest('.task-row');
-    const taskId = Number(taskRow.dataset.id);
+    const taskId = +taskRow.dataset.id;
 
     tasksManager.deleteTask(taskId);
 
@@ -157,44 +135,49 @@ export default class UI {
       .forEach(typeSection => typeSection.classList.add('hidden'));
 
     document.querySelector(`.${type}`).classList.remove('hidden');
-    document
-      .querySelector(`.${type}`)
-      .querySelector('.no-tasks-message')
-      .classList.remove('hidden');
-  }
 
-  // FIXME: Unmatched containerType and renderNewTask actual container results in every task is always displayed in Planned
-  renderNewTask() {
-    const tasks = tasksManager.tasks;
-    const newTask = tasks[tasks.length - 1];
-    const importanceClass = this.getImportanceClass(newTask.importance);
-
-    const containerType = isSameDay(
-      new Date(...this.toDateObject(newTask.date)),
-      new Date()
-    )
-      ? 'today'
-      : 'planned';
-
-    console.log(containerType);
-
-    this.createNewTaskRow('inbox', newTask, importanceClass);
-    this.createNewTaskRow(containerType, newTask, importanceClass);
     this.checkTasksAvailability();
   }
 
-  createNewTaskRow(containerType, task, importanceClass) {
+  getImportanceClass(importance) {
+    switch (importance) {
+      case 'High':
+        return 'importance-high';
+      case 'Medium':
+        return 'importance-medium';
+      case 'Low':
+        return 'importance-low';
+      default:
+        return '';
+    }
+  }
+
+  renderNewTaskRow() {
+    const newTask = _.last(tasksManager.allTasks);
+    const importanceClass = this.getImportanceClass(newTask.importance);
+
+    // Always show tasks in Inbox
+    this.prepareNewTaskRow('inbox', newTask, importanceClass);
+
+    if (newTask.type === 'Today') {
+      this.prepareNewTaskRow('today', newTask, importanceClass);
+    } else {
+      this.prepareNewTaskRow('planned', newTask, importanceClass);
+    }
+
+    this.checkTasksAvailability();
+  }
+
+  prepareNewTaskRow(containerType, task, importanceClass) {
     const taskWrapper = document.querySelector(
       `.${containerType} .task-wrapper`
     );
-
-    const taskType = containerType === 'today' ? 'Today' : 'Planned';
 
     const taskRow = `
       <div class="task-row ${importanceClass}" data-id="${task.id}">
           <div class="task-name-container">
               <p class="task-name">${task.name}</p>
-              <span class="task-type">${taskType}</span>
+              <span class="task-type">${task.type}</span>
               <span class="task-importance">${
                 importanceClass.split('-')[1]
               }</span>
@@ -206,7 +189,7 @@ export default class UI {
               <div class="btn btn-task delete">
                 <img src="${trashSvg}" class="icon" alt="Trash"/>
               </div>
-              <p class="task-date">${task.date}</p>
+              <p class="task-date">${format(task.date, 'dd/MM/yyyy')}</p>
           </div>
       </div>`;
 
@@ -214,7 +197,6 @@ export default class UI {
   }
 
   checkTasksAvailability() {
-    const tasks = tasksManager.tasks;
     const typeContainers = document.querySelectorAll('.type-container');
     const taskTypes = ['inbox', 'today', 'planned'];
 
@@ -224,16 +206,8 @@ export default class UI {
           taskTypes.includes(typeClass)
         ) || '';
 
-      const tasksForType =
-        type === 'inbox' ? tasks : tasks.filter(task => task.type === type);
-
-      const noTasksMessage = typeContainer.querySelector('.no-tasks-message');
-
-      if (tasksForType.length !== 0) {
-        noTasksMessage.style.display = 'none';
-      } else {
-        noTasksMessage.style.display = 'block';
-      }
+      tasksManager.getTasks(type);
+      this.toggleNoTasksMessage(typeContainer);
     });
   }
 }
