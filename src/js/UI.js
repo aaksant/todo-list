@@ -72,11 +72,16 @@ export default class UI {
     const importanceSelect = document.getElementById('importance');
     const dateInput = document.getElementById('date');
 
-    return {
-      name: _.capitalize(taskName.value.trim()),
-      importanceSelect: this.#getSelectedOption(importanceSelect),
-      date: dateInput.value || new Date()
-    };
+    if (taskName.value) {
+      return {
+        name: _.capitalize(taskName.value.trim()),
+        importanceSelect: this.#getSelectedOption(importanceSelect),
+        date: dateInput.value || new Date()
+      };
+    } else {
+      alert('Invalid task name.');
+      return;
+    }
   }
 
   clearModal() {
@@ -96,13 +101,17 @@ export default class UI {
   }
 
   handleAddTask() {
-    const { name, importanceSelect, date } = this.getModalInput();
+    if (this.getModalInput()) {
+      const { name, importanceSelect, date } = this.getModalInput();
 
-    tasksManager.appendTask(name, importanceSelect, date);
-    this.renderNewTaskRow();
+      tasksManager.appendTask(name, importanceSelect, date);
+      this.renderNewTaskRow();
 
-    this.toggleModal(false);
-    this.clearModal();
+      this.toggleModal(false);
+      this.clearModal();
+    } else {
+      return;
+    }
   }
 
   handleDeleteTask(e) {
