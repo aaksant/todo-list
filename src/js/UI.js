@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import _ from 'lodash';
 
 import editSvg from '../assets/edit.svg';
@@ -73,11 +73,16 @@ export default class UI {
     const dateInput = document.getElementById('date');
 
     if (taskName.value) {
-      return {
-        name: _.capitalize(taskName.value.trim()),
-        importanceSelect: this.#getSelectedOption(importanceSelect),
-        date: dateInput.value || new Date()
-      };
+      if (!isPast(dateInput.value)) {
+        return {
+          name: _.capitalize(taskName.value.trim()),
+          importanceSelect: this.#getSelectedOption(importanceSelect),
+          date: dateInput.value || new Date()
+        };
+      } else {
+        alert('Cannot set date to past date.');
+        return;
+      }
     } else {
       alert('Invalid task name.');
       return;
