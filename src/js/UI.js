@@ -73,7 +73,7 @@ export default class UI {
     const dateInput = document.getElementById('date');
 
     if (taskName.value) {
-      if (!isPast(dateInput.value)) {
+      if (!isPast(this.getFormattedDate(dateInput.value))) {
         return {
           name: _.capitalize(taskName.value.trim()),
           importanceSelect: this.#getSelectedOption(importanceSelect),
@@ -166,6 +166,10 @@ export default class UI {
     }
   }
 
+  getFormattedDate(date) {
+    return format(date, 'dd/MM/yyyy');
+  }
+
   renderNewTaskRow() {
     const newTask = _.last(tasksManager.allTasks);
     const importanceClass = this.getImportanceClass(newTask.importance);
@@ -203,7 +207,7 @@ export default class UI {
               <div class="btn btn-task delete">
                 <img src="${trashSvg}" class="icon" alt="Trash"/>
               </div>
-              <p class="task-date">${format(task.date, 'dd/MM/yyyy')}</p>
+              <p class="task-date">${this.getFormattedDate(task.date)}</p>
           </div>
       </div>`;
 
@@ -215,10 +219,9 @@ export default class UI {
     const taskTypes = ['inbox', 'today', 'planned'];
 
     typeContainers.forEach(typeContainer => {
-      const type =
-        [...typeContainer.classList].find(typeClass =>
-          taskTypes.includes(typeClass)
-        ) || '';
+      const type = [...typeContainer.classList].find(typeClass =>
+        taskTypes.includes(typeClass)
+      );
 
       tasksManager.getTasks(type);
       this.toggleNoTasksMessage(typeContainer);
