@@ -76,7 +76,7 @@ export default class UI {
       if (!isPast(this.getFormattedDate(dateInput.value))) {
         return {
           name: _.capitalize(taskName.value.trim()),
-          importanceSelect: this.#getSelectedOption(importanceSelect),
+          importance: this.#getSelectedOption(importanceSelect),
           date: dateInput.value || new Date()
         };
       } else {
@@ -107,9 +107,9 @@ export default class UI {
 
   handleAddTask() {
     if (this.getModalInput()) {
-      const { name, importanceSelect, date } = this.getModalInput();
+      const { name, importance, date } = this.getModalInput();
 
-      tasksManager.appendTask(name, importanceSelect, date);
+      tasksManager.appendTask(name, importance, date);
       this.renderNewTaskRow();
 
       this.toggleModal(false);
@@ -167,7 +167,11 @@ export default class UI {
   }
 
   getFormattedDate(date) {
-    return format(date, 'dd/MM/yyyy');
+    if (date) {
+      return format(date, 'dd/MM/yyyy');
+    } else {
+      return format(new Date(), 'dd/MM/yyyy');
+    }
   }
 
   renderNewTaskRow() {
