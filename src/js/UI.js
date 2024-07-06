@@ -18,16 +18,28 @@ export default class UI {
   }
 
   setupEventListeners() {
-    const btnOpenModal = document.querySelector('.add-task-btn');
+    const btnAddTask = document.querySelector('.btn-add-task');
     const btnCloseModal = document.querySelector('.btn-close-modal');
-    const btnAddTask = document.querySelector('.btn-confirm-add');
+    const btnConfirmAdd = document.querySelector('.btn-confirm-add');
+    const btnAddProject = document.querySelector('.btn-add-project');
+    const btnConfirmAddProject = document.querySelector(
+      '.btn-confirm-add-project'
+    );
     const overlay = document.querySelector('.overlay');
     const taskWrappers = document.querySelectorAll('.task-wrapper');
     const sidebar = document.querySelector('.sidebar');
 
-    btnOpenModal.addEventListener('click', this.toggleModal.bind(this, true));
+    btnAddTask.addEventListener('click', this.toggleModal.bind(this, true));
+    btnConfirmAdd.addEventListener('click', this.handleAddTask.bind(this));
 
-    btnAddTask.addEventListener('click', this.handleAddTask.bind(this));
+    btnAddProject.addEventListener(
+      'click',
+      this.toggleModal.bind(this, true, 'project')
+    );
+    btnConfirmAddProject.addEventListener(
+      'click',
+      this.handleAddProject.bind(this)
+    );
 
     btnCloseModal.addEventListener('click', this.toggleModal.bind(this, false));
 
@@ -44,15 +56,21 @@ export default class UI {
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
   }
 
-  toggleModal(isVisible) {
-    const modal = document.querySelector('.modal');
+  toggleModal(isVisible, modalType = 'task') {
+    const taskModal = document.querySelector('.modal-new-task');
+    const projectModal = document.querySelector('.modal-new-project');
     const overlay = document.querySelector('.overlay');
 
     if (isVisible) {
-      modal.classList.remove('hidden');
+      if (modalType === 'task') {
+        taskModal.classList.remove('hidden');
+      } else if (modalType === 'project') {
+        projectModal.classList.remove('hidden');
+      }
       overlay.classList.remove('hidden');
     } else {
-      modal.classList.add('hidden');
+      taskModal.classList.add('hidden');
+      projectModal.classList.add('hidden');
       overlay.classList.add('hidden');
     }
   }
@@ -65,6 +83,46 @@ export default class UI {
     } else {
       noTasksMessage.style.display = 'block';
     }
+  }
+
+  handleAddProject() {
+    const projectName = document
+      .getElementById('projectName')
+      .value.trim()
+      .toLowerCase();
+
+    if (projectName) {
+      this.addProject(projectName);
+      this.toggleModal(false, 'project');
+      this.clearProjectModal();
+    } else {
+      alert('Please enter a project name.');
+    }
+  }
+
+  addProject(name) {
+    const title = _.capitalize(name);
+
+    const projectsHeading = document.querySelector('.nav.project-task h2');
+    const main = document.querySelector('.main');
+
+    const projectBtn = `
+      <button id="${name}" class="btn btn-nav">${title}</button>
+    `;
+    const projectContainer = `
+      <div class="type-container ${name} hidden">
+        <h1 class="type-title">${title}</h1>
+        <div class="task-wrapper">
+          <p class="no-tasks-message">You have no tasks to do.</p>
+        </div>
+      </div>`;
+
+    main.insertAdjacentHTML('beforeend', projectContainer);
+    projectsHeading.insertAdjacentHTML('afterend', projectBtn);
+  }
+
+  clearProjectModal() {
+    document.getElementById('projectName').value = '';
   }
 
   getModalInput() {
@@ -133,13 +191,13 @@ export default class UI {
   }
 
   handleNavSwitch(e) {
-    const navBtn = e.target.closest('.nav-btn');
+    const navBtn = e.target.closest('.btn-nav');
     if (!navBtn) return;
 
     const type = navBtn.id;
 
     document
-      .querySelectorAll('.nav-btn')
+      .querySelectorAll('.btn-nav')
       .forEach(btn => btn.classList.remove('nav-active'));
 
     navBtn.classList.add('nav-active');
