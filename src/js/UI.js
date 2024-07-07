@@ -1,4 +1,4 @@
-import { format, isPast } from 'date-fns';
+import { format } from 'date-fns';
 import _ from 'lodash';
 
 import editSvg from '../assets/edit.svg';
@@ -29,7 +29,10 @@ export default class UI {
     const taskWrappers = document.querySelectorAll('.task-wrapper');
     const sidebar = document.querySelector('.sidebar');
 
-    btnAddTask.addEventListener('click', this.toggleModal.bind(this, true));
+    btnAddTask.addEventListener(
+      'click',
+      this.toggleModal.bind(this, true, 'task')
+    );
     btnConfirmAdd.addEventListener('click', this.handleAddTask.bind(this));
 
     btnAddProject.addEventListener(
@@ -56,7 +59,7 @@ export default class UI {
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
   }
 
-  toggleModal(isVisible, modalType = 'task') {
+  toggleModal(isVisible, modalType) {
     const taskModal = document.querySelector('.modal-new-task');
     const projectModal = document.querySelector('.modal-new-project');
     const overlay = document.querySelector('.overlay');
@@ -131,14 +134,20 @@ export default class UI {
     const dateInput = document.getElementById('date');
 
     if (taskName.value) {
-      if (!isPast(this.getFormattedDate(dateInput.value))) {
+      const selectedDate = new Date(dateInput.value);
+      const today = new Date();
+
+      // Set time to midnight for accurate date comparison
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate >= today || !dateInput.value) {
         return {
           name: _.capitalize(taskName.value.trim()),
           importance: this.#getSelectedOption(importanceSelect),
           date: dateInput.value || new Date()
         };
       } else {
-        alert('Cannot set date to past date.');
+        alert('Cannot set date to past.');
         return;
       }
     } else {
