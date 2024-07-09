@@ -108,15 +108,6 @@ h2 {
   font-weight: bold;
 }
 
-.btn-nav:hover .task-count {
-  background-color: #d1d5db; /* Slightly darker on hover */
-}
-
-.nav-active .task-count {
-  background-color: var(--main-red); /* Red background for active nav */
-  color: var(--btn-white);
-}
-
 .nav .btn-nav:hover {
   color: var(--main-red);
 }

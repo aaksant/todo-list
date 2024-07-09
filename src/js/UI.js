@@ -1,3 +1,7 @@
+// TODO: Add task count
+// TODO: Implement add task to custom project feature
+// TODO: Enable close button in new project modal
+
 import { format } from 'date-fns';
 import _ from 'lodash';
 
@@ -122,6 +126,8 @@ export default class UI {
 
     main.insertAdjacentHTML('beforeend', projectContainer);
     projectsHeading.insertAdjacentHTML('afterend', projectBtn);
+
+    this.updateTaskCount(name, 0);  
   }
 
   clearProjectModal() {
@@ -181,6 +187,7 @@ export default class UI {
 
       this.toggleModal(false);
       this.clearModal();
+      this.updateAllTaskCount();
     } else {
       return;
     }
@@ -197,6 +204,7 @@ export default class UI {
       .forEach(row => row.remove());
 
     this.checkTasksAvailability();
+    this.updateAllTaskCount();
   }
 
   handleNavSwitch(e) {
@@ -218,6 +226,19 @@ export default class UI {
     document.querySelector(`.${type}`).classList.remove('hidden');
 
     this.checkTasksAvailability();
+  }
+
+  getTypes() {
+    const types = [];
+
+    document.querySelectorAll('.type-container').forEach(container => {
+      const classes = [...container.classList];
+      const type = classes.filter(name => name !== 'type-container');
+
+      types.push(type[0]);
+    });
+
+    return types;
   }
 
   getImportanceClass(importance) {
@@ -266,19 +287,19 @@ export default class UI {
       <div class="task-row ${importanceClass}" data-id="${task.id}">
           <div class="task-name-container">
               <p class="task-name">${task.name}</p>
-              <span class="task-type">${task.type}</span>
+              <span class="task-type">${_.capitalize(task.type)}</span>
               <span class="task-importance">${
                 importanceClass.split('-')[1]
               }</span>
           </div>
           <div class="task-function">
+              <p class="task-date">${this.getFormattedDate(task.date)}</p>
               <div class="btn btn-task edit">
                 <img src="${editSvg}" class="icon" alt="Edit"/>
               </div>
               <div class="btn btn-task delete">
                 <img src="${trashSvg}" class="icon" alt="Trash"/>
               </div>
-              <p class="task-date">${this.getFormattedDate(task.date)}</p>
           </div>
       </div>`;
 
@@ -287,15 +308,32 @@ export default class UI {
 
   checkTasksAvailability() {
     const typeContainers = document.querySelectorAll('.type-container');
-    const taskTypes = ['inbox', 'today', 'planned'];
+    const types = this.getTypes();
 
     typeContainers.forEach(typeContainer => {
       const type = [...typeContainer.classList].find(typeClass =>
-        taskTypes.includes(typeClass)
+        types.includes(typeClass)
       );
 
       tasksManager.getTasks(type);
       this.toggleNoTasksMessage(typeContainer);
     });
+  }
+
+  updateAllTaskCount() {
+    const counts = tasksManager.getAllTaskCounts();
+
+    for (const [type, count] of Object.entries(counts)) {
+      this.updateTaskCount(type, count);
+    }
+  }
+
+  updateTaskCount(type, count) {
+    const navBtn = document.querySelector(`#${type}.btn-nav`);
+    
+    if (navBtn) {
+      const countSpan = navBtn.querySelector('.task-count');
+      countSpan.textContent = count;
+    }
   }
 }
