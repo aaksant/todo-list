@@ -114,7 +114,9 @@ export default class UI {
     const main = document.querySelector('.main');
 
     const projectBtn = `
-      <button id="${name}" class="btn btn-nav">${title}</button>
+      <button id="${name}" class="btn btn-nav">
+        ${_.capitalize(name)} <span class="task-count">0</span>
+      </button>
     `;
     const projectContainer = `
       <div class="type-container ${name} hidden">
@@ -127,7 +129,7 @@ export default class UI {
     main.insertAdjacentHTML('beforeend', projectContainer);
     projectsHeading.insertAdjacentHTML('afterend', projectBtn);
 
-    this.updateTaskCount(name, 0);  
+    this.updateTaskCount(name, 0);
   }
 
   clearProjectModal() {
@@ -330,7 +332,7 @@ export default class UI {
 
   updateTaskCount(type, count) {
     const navBtn = document.querySelector(`#${type}.btn-nav`);
-    
+
     if (navBtn) {
       const countSpan = navBtn.querySelector('.task-count');
       countSpan.textContent = count;
