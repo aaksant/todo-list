@@ -1,5 +1,8 @@
 :root {
   box-sizing: border-box;
+  --main-black: #111827;
+  --main-red: #ef4444;
+  --btn-white: #ffffff;
 }
 
 *,
@@ -32,7 +35,7 @@ h2 {
 
 .logo {
   font-size: 2.25rem;
-  color: #000;
+  color: var(--main-black);
   font-weight: 600;
   cursor: pointer;
 }
@@ -45,13 +48,13 @@ h2 {
   background-color: transparent;
 }
 
-.add-task-btn {
-  background-color: #111827;
+.btn-add-task {
+  background-color: var(--main-black);
   border: 1px solid transparent;
   border-radius: 0.75rem;
   box-sizing: border-box;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--btn-white);
   flex: 0 0 auto;
   font-size: 1.125rem;
   padding: 0.75rem 1.2rem;
@@ -71,7 +74,7 @@ h2 {
   flex-direction: column;
   justify-content: center;
   gap: 32px;
-  border-right: 1px solid black;
+  border-right: 1px solid var(--main-black);
 }
 
 .nav {
@@ -82,20 +85,60 @@ h2 {
   gap: 16px;
 }
 
-.nav .nav-btn {
+.btn-nav {
   font-size: 1.25rem;
+  position: relative;
+  padding-right: 50px;
 }
 
-.nav .nav-btn:hover {
-  color: red;
+.task-count {
+  position: absolute;
+  left: 175px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #e5e7eb; /* Light gray background */
+  color: #4b5563; /* Dark gray text */
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.btn-nav:hover .task-count {
+  background-color: #d1d5db; /* Slightly darker on hover */
+}
+
+.nav-active .task-count {
+  background-color: var(--main-red); /* Red background for active nav */
+  color: var(--btn-white);
+}
+
+.nav .btn-nav:hover {
+  color: var(--main-red);
 }
 
 .nav-active {
-  color: red;
+  color: var(--main-red);
 }
 
-.nav-btn:not(.nav-active)::after {
-  color: black;
+.btn-nav:not(.nav-active)::after {
+  color: var(--main-black);
+}
+
+.btn-add-project {
+  background-color: var(--main-black);
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  box-sizing: border-box;
+  font-weight: bold;
+  color: var(--btn-white);
+  flex: 0 0 auto;
+  font-size: 1.125rem;
+  padding: 0.75rem 1.2rem;
 }
 
 .main {
@@ -195,7 +238,7 @@ h2 {
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: #f3f3f3;
-  padding: 3rem 6rem;
+  padding: 3rem 5rem;
   box-shadow: 0 4rem 6rem rgba(0, 0, 0, 0.3);
   z-index: 1000;
   display: flex;
@@ -237,14 +280,14 @@ select {
   padding: 4px;
 }
 
-#confirm-add {
+.form-row .btn {
   margin-top: 28px;
-  background-color: #111827;
+  background-color: var(--main-black);
   border: 1px solid transparent;
   border-radius: 0.75rem;
   box-sizing: border-box;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--btn-white);
   flex: 0 0 auto;
   font-size: 1.125rem;
   padding: 0.75rem 1.2rem;
