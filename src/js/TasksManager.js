@@ -21,6 +21,27 @@ export default class TasksManager {
     this.allTasks = this.allTasks.filter(task => task.id !== id);
   }
 
+  getTaskCount(type) {
+    switch (type) {
+      case 'inbox':
+        return this.allTasks.length;
+      case 'today':
+        return this.allTasks.filter(task => task.type === 'Today').length;
+      case 'planned':
+        return this.allTasks.filter(task => task.type === 'Planned').length;
+      default:
+        return this.allTasks.filter(task => task.project === type).length;
+    }
+  }
+
+  getAllTaskCounts() {
+    return {
+      inbox: this.getTaskCount('inbox'),
+      today: this.getTaskCount('today'),
+      planned: this.getTaskCount('planned')
+    };
+  }
+
   getTasks(type) {
     switch (type) {
       case 'inbox':
