@@ -1,23 +1,41 @@
 import { isSameDay } from 'date-fns';
+import ProjectsManager from './ProjectsManager.js';
 
 export default class TasksManager {
   constructor() {
     this.allTasks = [];
     this.tasksForType = [];
     this.currentTaskId = 0;
+    this.projectsManager = new ProjectsManager();
   }
 
-  appendTask(name, importance, date) {
-    this.allTasks.push({
+  appendTask(name, importance, date, projectId = null) {
+    const task = {
       id: this.currentTaskId++,
       name,
       importance,
       date,
-      type: isSameDay(date, new Date()) ? 'Today' : 'Planned'
-    });
+      type: projectId
+        ? 'Project'
+        : isSameDay(date, new Date())
+        ? 'Today'
+        : 'Planned',
+      projectId
+    };
+
+    this.allTasks.push(task);
+    if (projectId) this.projectsManager.addTaskToProject(projectId, task.id);
+
+    return task;
   }
 
   deleteTask(id) {
+    const task = this.allTasks.find(task => task.id === id);
+
+    if (task && task.projectId) {
+      this.projectsManager.removeTask(task.projectId, id);
+    }
+
     this.allTasks = this.allTasks.filter(task => task.id !== id);
   }
 
@@ -30,16 +48,22 @@ export default class TasksManager {
       case 'planned':
         return this.allTasks.filter(task => task.type === 'Planned').length;
       default:
-        return this.allTasks.filter(task => task.project === type).length;
+        return this.projectsManager.getProject(type)?.tasks.length || 0;
     }
   }
 
   getAllTaskCounts() {
-    return {
+    const counts = {
       inbox: this.getTaskCount('inbox'),
       today: this.getTaskCount('today'),
       planned: this.getTaskCount('planned')
     };
+
+    this.projectsManager.projects.forEach(project => {
+      counts[project.id] = this.getTaskCount(project.id);
+    });
+
+    return counts;
   }
 
   getTasks(type) {
@@ -54,8 +78,30 @@ export default class TasksManager {
         this.tasksForType = this.allTasks.filter(
           task => task.type === 'Planned'
         );
+        break;
       default:
+        this.tasksForType = this.allTasks.filter(
+          task => task.projectId === type
+        );
         break;
     }
+  }
+
+  addProject(name) {
+    return this.projectsManager.addProject(name);
+  }
+
+  deleteProject(id) {
+    const deletedProject = this.projectsManager.deleteProject(id);
+
+    if (deletedProject) {
+      this.allTasks = this.allTasks.filter(task => task.projectId !== id);
+      return true;
+    }
+    return false;
+  }
+
+  getAllProjects() {
+    return this.projectsManager.projects;
   }
 }
