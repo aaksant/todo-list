@@ -1,5 +1,4 @@
-// TODO: Add task count
-// TODO: Implement add task to custom project feature
+// TODO: Remove project from .main
 // TODO: Enable close button in new project modal
 
 import { format } from 'date-fns';
@@ -9,10 +8,9 @@ import editSvg from '../assets/edit.svg';
 import trashSvg from '../assets/trash.svg';
 import TasksManager from './TasksManager';
 
-const tasksManager = new TasksManager();
-
 export default class UI {
   constructor() {
+    this.tasksManager = new TasksManager();
     this.setupEventListeners();
     this.checkTasksAvailability();
   }
@@ -61,6 +59,10 @@ export default class UI {
     );
 
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
+
+    document
+      .querySelector('.nav.project-task')
+      .addEventListener('click', this.handleProjectActions.bind(this));
   }
 
   toggleModal(isVisible, modalType) {
@@ -85,7 +87,7 @@ export default class UI {
   toggleNoTasksMessage(typeContainer) {
     const noTasksMessage = typeContainer.querySelector('.no-tasks-message');
 
-    if (tasksManager.tasksForType.length !== 0) {
+    if (this.tasksManager.tasksForType.length !== 0) {
       noTasksMessage.style.display = 'none';
     } else {
       noTasksMessage.style.display = 'block';
@@ -94,7 +96,7 @@ export default class UI {
 
   handleAddProject() {
     const projectName = document
-      .getElementById('projectName')
+      .getElementById('newProjectName')
       .value.trim()
       .toLowerCase();
 
@@ -108,28 +110,43 @@ export default class UI {
   }
 
   addProject(name) {
+    const project = this.tasksManager.addProject(name);
     const title = _.capitalize(name);
+    const mainContainer = document.querySelector('.main');
 
     const projectsHeading = document.querySelector('.nav.project-task h2');
-    const main = document.querySelector('.main');
 
-    const projectBtn = `
-      <button id="${name}" class="btn btn-nav">
-        ${_.capitalize(name)} <span class="task-count">0</span>
-      </button>
-    `;
+    const projectNav = `
+      <button id="${project.id}" class="btn btn-nav">
+        ${title} 
+        <span class="task-count">0</span>
+        <span class="delete-project">&times;</span>
+      </button>`;
+
     const projectContainer = `
-      <div class="type-container ${name} hidden">
+      <div class="type-container ${project.id} hidden">
         <h1 class="type-title">${title}</h1>
         <div class="task-wrapper">
           <p class="no-tasks-message">You have no tasks to do.</p>
         </div>
       </div>`;
 
-    main.insertAdjacentHTML('beforeend', projectContainer);
-    projectsHeading.insertAdjacentHTML('afterend', projectBtn);
+    mainContainer.insertAdjacentHTML('beforeend', projectContainer);
+    projectsHeading.insertAdjacentHTML('afterend', projectNav);
 
-    this.updateTaskCount(name, 0);
+    this.updateTaskCount(project.id, 0);
+    this.updateProjectSelect();
+  }
+
+  updateProjectSelect() {
+    const projectSelect = document.getElementById('projectName');
+    projectSelect.innerHTML = '<option value="">Default task</option>';
+
+    this.tasksManager.getAllProjects().forEach(project => {
+      projectSelect.innerHTML += `<option value="${project.id}">${_.capitalize(
+        project.name
+      )}</option>`;
+    });
   }
 
   clearProjectModal() {
@@ -182,16 +199,21 @@ export default class UI {
 
   handleAddTask() {
     if (this.getModalInput()) {
-      const { name, importance, date } = this.getModalInput();
+      const { name, importance, date, project } = this.getModalInput();
 
-      tasksManager.appendTask(name, importance, date);
+      this.tasksManager.appendTask(name, importance, date, project);
       this.renderNewTaskRow();
 
       this.toggleModal(false);
       this.clearModal();
       this.updateAllTaskCount();
-    } else {
-      return;
+    }
+  }
+
+  handleProjectActions(e) {
+    if (e.target.classList.contains('delete-project')) {
+      const projectId = e.target.closest('.btn-nav').id;
+      this.deleteProject(projectId);
     }
   }
 
@@ -199,7 +221,7 @@ export default class UI {
     const taskRow = e.target.closest('.task-row');
     const taskId = +taskRow.dataset.id;
 
-    tasksManager.deleteTask(taskId);
+    this.tasksManager.deleteTask(taskId);
 
     document
       .querySelectorAll(`.task-row[data-id="${taskId}"]`)
@@ -265,7 +287,7 @@ export default class UI {
   }
 
   renderNewTaskRow() {
-    const newTask = _.last(tasksManager.allTasks);
+    const newTask = _.last(this.tasksManager.allTasks);
     const importanceClass = this.getImportanceClass(newTask.importance);
 
     // Always show tasks in Inbox
@@ -308,6 +330,29 @@ export default class UI {
     taskWrapper.insertAdjacentHTML('beforeend', taskRow);
   }
 
+  deleteProject(projectId) {
+    if (
+      confirm(
+        'Are you sure you want to delete this project? All associated tasks will be deleted.'
+      )
+    ) {
+      if (this.tasksManager.deleteProject(projectId)) {
+        // Remove project from sidebar
+        const projectNav = document.getElementById(projectId);
+        if (projectNav) projectNav.remove();
+
+        // Remove project container
+        const projectContainer = document.querySelector(
+          `.type-container.project-${projectId}`
+        );
+        if (projectContainer) projectContainer.remove();
+
+        this.updateProjectSelect();
+        this.updateAllTaskCount();
+      }
+    }
+  }
+
   checkTasksAvailability() {
     const typeContainers = document.querySelectorAll('.type-container');
     const types = this.getTypes();
@@ -317,13 +362,13 @@ export default class UI {
         types.includes(typeClass)
       );
 
-      tasksManager.getTasks(type);
+      this.tasksManager.getTasks(type);
       this.toggleNoTasksMessage(typeContainer);
     });
   }
 
   updateAllTaskCount() {
-    const counts = tasksManager.getAllTaskCounts();
+    const counts = this.tasksManager.getAllTaskCounts();
 
     for (const [type, count] of Object.entries(counts)) {
       this.updateTaskCount(type, count);
