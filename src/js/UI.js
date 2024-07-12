@@ -236,6 +236,7 @@ export default class UI {
     if (!navBtn) return;
 
     const type = navBtn.id;
+    const selectedContainer = document.querySelector(`.${type}`);
 
     document
       .querySelectorAll('.btn-nav')
@@ -247,8 +248,18 @@ export default class UI {
       .querySelectorAll('.type-container')
       .forEach(typeSection => typeSection.classList.add('hidden'));
 
-    document.querySelector(`.${type}`).classList.remove('hidden');
+    if (selectedContainer) {
+      selectedContainer.classList.remove('hidden');
+    } else {
+      const inboxContainer = document.querySelector('.inbox');
 
+      if (inboxContainer) {
+        inboxContainer.classList.remove('hidden');
+
+        const inboxBtn = document.querySelector('#inbox.btn-nav');
+        if (inboxBtn) inboxBtn.classList.add('nav-active');
+      }
+    }
     this.checkTasksAvailability();
   }
 
@@ -256,10 +267,8 @@ export default class UI {
     const types = [];
 
     document.querySelectorAll('.type-container').forEach(container => {
-      const classes = [...container.classList];
-      const type = classes.filter(name => name !== 'type-container');
-
-      types.push(type[0]);
+      const classes = container.classList;
+      types.push(classes[1]);
     });
 
     return types;
@@ -336,20 +345,16 @@ export default class UI {
         'Are you sure you want to delete this project? All associated tasks will be deleted.'
       )
     ) {
-      if (this.tasksManager.deleteProject(projectId)) {
-        // Remove project from sidebar
-        const projectNav = document.getElementById(projectId);
-        if (projectNav) projectNav.remove();
+      const projectNav = document.getElementById(projectId);
+      if (projectNav) projectNav.remove();
 
-        // Remove project container
-        const projectContainer = document.querySelector(
-          `.type-container.project-${projectId}`
-        );
-        if (projectContainer) projectContainer.remove();
+      const projectContainer = document.querySelector(
+        `.type-container.${projectId}`
+      );
+      if (projectContainer) projectContainer.remove();
 
-        this.updateProjectSelect();
-        this.updateAllTaskCount();
-      }
+      this.updateProjectSelect();
+      this.updateAllTaskCount();
     }
   }
 
