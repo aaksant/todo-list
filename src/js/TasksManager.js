@@ -16,7 +16,7 @@ export default class TasksManager {
       importance,
       date,
       type: projectId
-        ? 'Project'
+        ? `Project (${this.getProject(projectId).name})`
         : isSameDay(date, new Date())
         ? 'Today'
         : 'Planned',
@@ -25,6 +25,8 @@ export default class TasksManager {
 
     this.allTasks.push(task);
     if (projectId) this.projectsManager.addTask(projectId, task.id);
+
+    console.log(this.getProject(projectId));
   }
 
   deleteTask(id) {
@@ -48,6 +50,10 @@ export default class TasksManager {
       default:
         return this.projectsManager.getProject(type)?.tasks.length || 0;
     }
+  }
+
+  getProject(id) {
+    return this.projectsManager.projects.find(project => project.id === id);
   }
 
   getAllTaskCounts() {

@@ -95,10 +95,7 @@ export default class UI {
   }
 
   handleAddProject() {
-    const projectName = document
-      .getElementById('newProjectName')
-      .value.trim()
-      .toLowerCase();
+    const projectName = document.getElementById('newProjectName').value.trim();
 
     if (projectName) {
       this.addProject(projectName);
@@ -111,21 +108,20 @@ export default class UI {
 
   addProject(name) {
     const project = this.tasksManager.addProject(name);
-    const title = _.capitalize(name);
     const mainContainer = document.querySelector('.main');
 
     const projectsHeading = document.querySelector('.nav.project-task h2');
 
     const projectNav = `
       <button id="${project.id}" class="btn btn-nav">
-        ${title} 
+        ${name} 
         <span class="task-count">0</span>
         <img src="${xmarkSvg}" class="btn-delete-project" alt="X mark"/>
       </button>`;
 
     const projectContainer = `
       <div class="type-container ${project.id} hidden">
-        <h1 class="type-title">${title}</h1>
+        <h1 class="type-title">${name}</h1>
         <div class="task-wrapper">
           <p class="no-tasks-message">You have no tasks to do.</p>
         </div>
@@ -143,9 +139,7 @@ export default class UI {
     projectSelect.innerHTML = '<option value="">Default task</option>';
 
     this.tasksManager.getAllProjects().forEach(project => {
-      projectSelect.innerHTML += `<option value="${project.id}">${_.capitalize(
-        project.name
-      )}</option>`;
+      projectSelect.innerHTML += `<option value="${project.id}">${project.name}</option>`;
     });
   }
 
@@ -157,19 +151,20 @@ export default class UI {
     const taskName = document.getElementById('taskName');
     const importanceSelect = document.getElementById('importance');
     const dateInput = document.getElementById('date');
+    const projectSelect = document.getElementById('projectName');
 
     if (taskName.value) {
       const selectedDate = new Date(dateInput.value);
       const today = new Date();
 
-      // Set time to midnight for accurate date comparison
       today.setHours(0, 0, 0, 0);
 
       if (selectedDate >= today || !dateInput.value) {
         return {
           name: _.capitalize(taskName.value.trim()),
           importance: this.#getSelectedOption(importanceSelect),
-          date: dateInput.value || new Date()
+          date: dateInput.value || new Date(),
+          projectId: projectSelect.value
         };
       } else {
         alert('Cannot set date to past.');
@@ -199,16 +194,14 @@ export default class UI {
 
   handleAddTask() {
     if (this.getModalInput()) {
-      const { name, importance, date, project } = this.getModalInput();
+      const { name, importance, date, projectId } = this.getModalInput();
 
-      this.tasksManager.appendTask(name, importance, date, project);
+      this.tasksManager.appendTask(name, importance, date, projectId);
       this.renderNewTaskRow();
 
       this.toggleModal(false);
       this.clearModal();
       this.updateAllTaskCount();
-
-      
     }
   }
 
@@ -306,8 +299,12 @@ export default class UI {
 
     if (newTask.type === 'Today') {
       this.prepareNewTaskRow('today', newTask, importanceClass);
-    } else {
+    } else if (newTask.type === 'Planned') {
       this.prepareNewTaskRow('planned', newTask, importanceClass);
+    }
+
+    if (newTask.projectId) {
+      this.prepareNewTaskRow(newTask.projectId, newTask, importanceClass);
     }
 
     this.checkTasksAvailability();
