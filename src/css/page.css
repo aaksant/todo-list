@@ -91,13 +91,13 @@ h2 {
   padding-right: 50px;
 }
 
-.task-count {
+/* .task-count {
   position: absolute;
   left: 175px;
   top: 50%;
   transform: translateY(-50%);
-  background-color: #e5e7eb; /* Light gray background */
-  color: #4b5563; /* Dark gray text */
+  background-color: #e5e7eb; 
+  color: #4b5563;
   border-radius: 50%;
   width: 24px;
   height: 24px;
@@ -106,9 +106,36 @@ h2 {
   justify-content: center;
   font-size: 0.75rem;
   font-weight: bold;
+} */
+
+.task-count,
+.btn-delete-project {
+  position: absolute;
+  left: 175px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #e5e7eb;
+  color: #4b5563;
+  width: 24px;
+  border-radius: 50%;
+  height: 24px;
 }
 
-.nav .btn-nav:hover {
+.btn-delete-project {
+  display: none;
+  z-index: 1;
+}
+
+.task-count {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  z-index: 0;
+}
+
+.btn-nav:hover {
   color: var(--main-red);
 }
 
@@ -118,6 +145,10 @@ h2 {
 
 .btn-nav:not(.nav-active)::after {
   color: var(--main-black);
+}
+
+.btn-nav:hover .btn-delete-project {
+  display: block;
 }
 
 .btn-add-project {
