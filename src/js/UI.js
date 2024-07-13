@@ -1,5 +1,3 @@
-// TODO: Enable close button in new project modal
-
 import { format } from 'date-fns';
 import _ from 'lodash';
 
@@ -21,7 +19,8 @@ export default class UI {
 
   setupEventListeners() {
     const btnAddTask = document.querySelector('.btn-add-task');
-    const btnCloseModal = document.querySelector('.btn-close-modal');
+    const btnCloseTaskModal = document.querySelector('.modal-new-task .btn-close-modal');
+    const btnCloseProjectModal = document.querySelector('.modal-new-project .btn-close-modal');
     const btnConfirmAdd = document.querySelector('.btn-confirm-add');
     const btnAddProject = document.querySelector('.btn-add-project');
     const btnConfirmAddProject = document.querySelector(
@@ -46,7 +45,8 @@ export default class UI {
       this.handleAddProject.bind(this)
     );
 
-    btnCloseModal.addEventListener('click', this.toggleModal.bind(this, false));
+    btnCloseTaskModal.addEventListener('click', this.toggleModal.bind(this, false, 'task'));
+    btnCloseProjectModal.addEventListener('click', this.toggleModal.bind(this, false, 'project'));
 
     // Escape keydown support
     document.addEventListener('keydown', this.handleKeyboardInput.bind(this));
@@ -144,7 +144,7 @@ export default class UI {
   }
 
   clearProjectModal() {
-    document.getElementById('projectName').value = '';
+    document.getElementById('newProjectName').value = '';
   }
 
   getModalInput() {
