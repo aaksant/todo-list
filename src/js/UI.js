@@ -1,4 +1,5 @@
 // Too lazy to implement edit feature
+// FIXME: Deleting project doesn't remove its tasks.
 
 import { format } from 'date-fns';
 import _ from 'lodash';
@@ -7,8 +8,6 @@ import editSvg from '../assets/edit.svg';
 import trashSvg from '../assets/trash.svg';
 import xmarkSvg from '../assets/xmark.svg';
 import TasksManager from './TasksManager';
-import { th } from 'date-fns/locale';
-
 export default class UI {
   constructor() {
     this.tasksManager = new TasksManager();
@@ -67,9 +66,9 @@ export default class UI {
     // Overlay click
     overlay.addEventListener('click', this.toggleModal.bind(this, false));
 
-    taskWrappers.forEach(wrapper =>
-      wrapper.addEventListener('click', this.handleTaskFunctions.bind(this))
-    );
+    document
+      .querySelector('.main')
+      .addEventListener('click', this.handleTaskFunctions.bind(this));
 
     sidebar.addEventListener('click', this.handleNavSwitch.bind(this));
 
@@ -125,6 +124,85 @@ export default class UI {
     } else {
       alert('Please enter a project name.');
     }
+  }
+
+  handleKeyboardInput(e) {
+    if (e.key === 'Escape') this.toggleModal(false);
+  }
+
+  handleTaskFunctions(e) {
+    const taskRow = e.target.closest('.task-row');
+    if (!taskRow) return;
+
+    if (e.target.closest('.delete')) {
+      this.handleDeleteTask(e);
+    }
+  }
+
+  handleAddTask() {
+    if (this.getModalInput()) {
+      const { name, importance, date, projectId } = this.getModalInput();
+
+      this.tasksManager.appendTask(name, importance, date, projectId);
+      this.renderNewTaskRow();
+
+      this.toggleModal(false);
+      this.clearModal();
+      this.updateAllTaskCount();
+    }
+  }
+
+  handleProjectActions(e) {
+    if (e.target.classList.contains('btn-delete-project')) {
+      const projectId = e.target.closest('.btn-nav').id;
+      this.deleteProject(projectId);
+    }
+  }
+
+  handleDeleteTask(e) {
+    const taskRow = e.target.closest('.task-row');
+    const taskId = +taskRow.dataset.id;
+
+    this.tasksManager.deleteTask(taskId);
+
+    document
+      .querySelectorAll(`.task-row[data-id="${taskId}"]`)
+      .forEach(row => row.remove());
+
+    this.checkTasksAvailability();
+    this.updateAllTaskCount();
+  }
+
+  handleNavSwitch(e) {
+    const navBtn = e.target.closest('.btn-nav');
+    if (!navBtn) return;
+
+    const type = navBtn.id;
+    const selectedContainer = document.querySelector(`.${type}`);
+
+    document
+      .querySelectorAll('.btn-nav')
+      .forEach(btn => btn.classList.remove('nav-active'));
+
+    navBtn.classList.add('nav-active');
+
+    document
+      .querySelectorAll('.type-container')
+      .forEach(typeSection => typeSection.classList.add('hidden'));
+
+    if (selectedContainer) {
+      selectedContainer.classList.remove('hidden');
+    } else {
+      const inboxContainer = document.querySelector('.inbox');
+
+      if (inboxContainer) {
+        inboxContainer.classList.remove('hidden');
+
+        const inboxBtn = document.querySelector('#inbox.btn-nav');
+        if (inboxBtn) inboxBtn.classList.add('nav-active');
+      }
+    }
+    this.checkTasksAvailability();
   }
 
   addProject(name) {
@@ -201,82 +279,6 @@ export default class UI {
     document.getElementById('taskName').value = '';
     document.getElementById('importance').selectedIndex = 0;
     document.getElementById('date').value = '';
-  }
-
-  handleKeyboardInput(e) {
-    if (e.key === 'Escape') this.toggleModal(false);
-  }
-
-  handleTaskFunctions(e) {
-    if (e.target.closest('.delete')) {
-      this.handleDeleteTask(e);
-    }
-  }
-
-  handleAddTask() {
-    if (this.getModalInput()) {
-      const { name, importance, date, projectId } = this.getModalInput();
-
-      this.tasksManager.appendTask(name, importance, date, projectId);
-      this.renderNewTaskRow();
-
-      this.toggleModal(false);
-      this.clearModal();
-      this.updateAllTaskCount();
-    }
-  }
-
-  handleProjectActions(e) {
-    if (e.target.classList.contains('btn-delete-project')) {
-      const projectId = e.target.closest('.btn-nav').id;
-      this.deleteProject(projectId);
-    }
-  }
-
-  handleDeleteTask(e) {
-    const taskRow = e.target.closest('.task-row');
-    const taskId = +taskRow.dataset.id;
-
-    this.tasksManager.deleteTask(taskId);
-
-    document
-      .querySelectorAll(`.task-row[data-id="${taskId}"]`)
-      .forEach(row => row.remove());
-
-    this.checkTasksAvailability();
-    this.updateAllTaskCount();
-  }
-
-  handleNavSwitch(e) {
-    const navBtn = e.target.closest('.btn-nav');
-    if (!navBtn) return;
-
-    const type = navBtn.id;
-    const selectedContainer = document.querySelector(`.${type}`);
-
-    document
-      .querySelectorAll('.btn-nav')
-      .forEach(btn => btn.classList.remove('nav-active'));
-
-    navBtn.classList.add('nav-active');
-
-    document
-      .querySelectorAll('.type-container')
-      .forEach(typeSection => typeSection.classList.add('hidden'));
-
-    if (selectedContainer) {
-      selectedContainer.classList.remove('hidden');
-    } else {
-      const inboxContainer = document.querySelector('.inbox');
-
-      if (inboxContainer) {
-        inboxContainer.classList.remove('hidden');
-
-        const inboxBtn = document.querySelector('#inbox.btn-nav');
-        if (inboxBtn) inboxBtn.classList.add('nav-active');
-      }
-    }
-    this.checkTasksAvailability();
   }
 
   getTypes() {
