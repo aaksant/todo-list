@@ -1,4 +1,3 @@
-// TODO: Remove project from .main
 // TODO: Enable close button in new project modal
 
 import { format } from 'date-fns';
@@ -6,6 +5,7 @@ import _ from 'lodash';
 
 import editSvg from '../assets/edit.svg';
 import trashSvg from '../assets/trash.svg';
+import xmarkSvg from '../assets/xmark.svg';
 import TasksManager from './TasksManager';
 
 export default class UI {
@@ -120,7 +120,7 @@ export default class UI {
       <button id="${project.id}" class="btn btn-nav">
         ${title} 
         <span class="task-count">0</span>
-        <span class="delete-project">&times;</span>
+        <img src="${xmarkSvg}" class="btn-delete-project" alt="X mark"/>
       </button>`;
 
     const projectContainer = `
@@ -207,11 +207,13 @@ export default class UI {
       this.toggleModal(false);
       this.clearModal();
       this.updateAllTaskCount();
+
+      
     }
   }
 
   handleProjectActions(e) {
-    if (e.target.classList.contains('delete-project')) {
+    if (e.target.classList.contains('btn-delete-project')) {
       const projectId = e.target.closest('.btn-nav').id;
       this.deleteProject(projectId);
     }
