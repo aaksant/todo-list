@@ -1,4 +1,3 @@
-// TODO: Remove project from .main
 // TODO: Enable close button in new project modal
 
 import { format } from 'date-fns';
@@ -6,6 +5,7 @@ import _ from 'lodash';
 
 import editSvg from '../assets/edit.svg';
 import trashSvg from '../assets/trash.svg';
+import xmarkSvg from '../assets/xmark.svg';
 import TasksManager from './TasksManager';
 
 export default class UI {
@@ -120,7 +120,7 @@ export default class UI {
       <button id="${project.id}" class="btn btn-nav">
         ${title} 
         <span class="task-count">0</span>
-        <span class="delete-project">&times;</span>
+        <img src="${xmarkSvg}" class="btn-delete-project" alt="X mark"/>
       </button>`;
 
     const projectContainer = `
@@ -207,11 +207,13 @@ export default class UI {
       this.toggleModal(false);
       this.clearModal();
       this.updateAllTaskCount();
+
+      
     }
   }
 
   handleProjectActions(e) {
-    if (e.target.classList.contains('delete-project')) {
+    if (e.target.classList.contains('btn-delete-project')) {
       const projectId = e.target.closest('.btn-nav').id;
       this.deleteProject(projectId);
     }
@@ -236,6 +238,7 @@ export default class UI {
     if (!navBtn) return;
 
     const type = navBtn.id;
+    const selectedContainer = document.querySelector(`.${type}`);
 
     document
       .querySelectorAll('.btn-nav')
@@ -247,8 +250,18 @@ export default class UI {
       .querySelectorAll('.type-container')
       .forEach(typeSection => typeSection.classList.add('hidden'));
 
-    document.querySelector(`.${type}`).classList.remove('hidden');
+    if (selectedContainer) {
+      selectedContainer.classList.remove('hidden');
+    } else {
+      const inboxContainer = document.querySelector('.inbox');
 
+      if (inboxContainer) {
+        inboxContainer.classList.remove('hidden');
+
+        const inboxBtn = document.querySelector('#inbox.btn-nav');
+        if (inboxBtn) inboxBtn.classList.add('nav-active');
+      }
+    }
     this.checkTasksAvailability();
   }
 
@@ -256,10 +269,8 @@ export default class UI {
     const types = [];
 
     document.querySelectorAll('.type-container').forEach(container => {
-      const classes = [...container.classList];
-      const type = classes.filter(name => name !== 'type-container');
-
-      types.push(type[0]);
+      const classes = container.classList;
+      types.push(classes[1]);
     });
 
     return types;
@@ -336,20 +347,16 @@ export default class UI {
         'Are you sure you want to delete this project? All associated tasks will be deleted.'
       )
     ) {
-      if (this.tasksManager.deleteProject(projectId)) {
-        // Remove project from sidebar
-        const projectNav = document.getElementById(projectId);
-        if (projectNav) projectNav.remove();
+      const projectNav = document.getElementById(projectId);
+      if (projectNav) projectNav.remove();
 
-        // Remove project container
-        const projectContainer = document.querySelector(
-          `.type-container.project-${projectId}`
-        );
-        if (projectContainer) projectContainer.remove();
+      const projectContainer = document.querySelector(
+        `.type-container.${projectId}`
+      );
+      if (projectContainer) projectContainer.remove();
 
-        this.updateProjectSelect();
-        this.updateAllTaskCount();
-      }
+      this.updateProjectSelect();
+      this.updateAllTaskCount();
     }
   }
 

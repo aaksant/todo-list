@@ -24,9 +24,7 @@ export default class TasksManager {
     };
 
     this.allTasks.push(task);
-    if (projectId) this.projectsManager.addTaskToProject(projectId, task.id);
-
-    return task;
+    if (projectId) this.projectsManager.addTask(projectId, task.id);
   }
 
   deleteTask(id) {
@@ -96,9 +94,7 @@ export default class TasksManager {
 
     if (deletedProject) {
       this.allTasks = this.allTasks.filter(task => task.projectId !== id);
-      return true;
     }
-    return false;
   }
 
   getAllProjects() {
