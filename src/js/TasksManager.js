@@ -25,8 +25,6 @@ export default class TasksManager {
 
     this.allTasks.push(task);
     if (projectId) this.projectsManager.addTask(projectId, task.id);
-
-    console.log(this.getProject(projectId));
   }
 
   deleteTask(id) {
