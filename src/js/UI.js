@@ -1,3 +1,5 @@
+// Too lazy to implement edit feature
+
 import { format } from 'date-fns';
 import _ from 'lodash';
 
@@ -5,6 +7,7 @@ import editSvg from '../assets/edit.svg';
 import trashSvg from '../assets/trash.svg';
 import xmarkSvg from '../assets/xmark.svg';
 import TasksManager from './TasksManager';
+import { th } from 'date-fns/locale';
 
 export default class UI {
   constructor() {
@@ -19,8 +22,12 @@ export default class UI {
 
   setupEventListeners() {
     const btnAddTask = document.querySelector('.btn-add-task');
-    const btnCloseTaskModal = document.querySelector('.modal-new-task .btn-close-modal');
-    const btnCloseProjectModal = document.querySelector('.modal-new-project .btn-close-modal');
+    const btnCloseTaskModal = document.querySelector(
+      '.modal-new-task .btn-close-modal'
+    );
+    const btnCloseProjectModal = document.querySelector(
+      '.modal-new-project .btn-close-modal'
+    );
     const btnConfirmAdd = document.querySelector('.btn-confirm-add');
     const btnAddProject = document.querySelector('.btn-add-project');
     const btnConfirmAddProject = document.querySelector(
@@ -45,8 +52,14 @@ export default class UI {
       this.handleAddProject.bind(this)
     );
 
-    btnCloseTaskModal.addEventListener('click', this.toggleModal.bind(this, false, 'task'));
-    btnCloseProjectModal.addEventListener('click', this.toggleModal.bind(this, false, 'project'));
+    btnCloseTaskModal.addEventListener(
+      'click',
+      this.toggleModal.bind(this, false, 'task')
+    );
+    btnCloseProjectModal.addEventListener(
+      'click',
+      this.toggleModal.bind(this, false, 'project')
+    );
 
     // Escape keydown support
     document.addEventListener('keydown', this.handleKeyboardInput.bind(this));
@@ -98,9 +111,17 @@ export default class UI {
     const projectName = document.getElementById('newProjectName').value.trim();
 
     if (projectName) {
-      this.addProject(projectName);
-      this.toggleModal(false, 'project');
-      this.clearProjectModal();
+      const projects = this.tasksManager
+        .getAllProjects()
+        .map(project => project.name);
+
+      if (!projects.includes(projectName)) {
+        this.addProject(projectName);
+        this.toggleModal(false, 'project');
+        this.clearProjectModal();
+      } else {
+        alert('Project name cannot be same.');
+      }
     } else {
       alert('Please enter a project name.');
     }
