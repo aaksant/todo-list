@@ -91,23 +91,6 @@ h2 {
   padding-right: 50px;
 }
 
-/* .task-count {
-  position: absolute;
-  left: 175px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: #e5e7eb; 
-  color: #4b5563;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: bold;
-} */
-
 .task-count,
 .btn-delete-project {
   position: absolute;
