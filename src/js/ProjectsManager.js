@@ -13,7 +13,7 @@ export default class ProjectsManager {
 
   addProject(name) {
     const project = {
-      id: 'project-' + Date.now().toString(),
+      id: `project-${Date.now().toString()}`,
       name,
       tasks: []
     };
