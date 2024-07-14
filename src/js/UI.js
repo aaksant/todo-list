@@ -339,7 +339,9 @@ export default class UI {
     );
 
     const taskRow = `
-      <div class="task-row ${importanceClass}" data-id="${task.id}">
+      <div class="task-row ${importanceClass}" data-task-id="${
+      task.taskId
+    }" data-project-id="${task.projectId || ''}">
           <div class="task-name-container">
               <p class="task-name">${task.name}</p>
               <span class="task-type">${_.capitalize(task.type)}</span>
@@ -367,6 +369,8 @@ export default class UI {
         'Are you sure you want to delete this project? All associated tasks will be deleted.'
       )
     ) {
+      this.tasksManager.deleteProject(projectId);
+
       const projectNav = document.getElementById(projectId);
       if (projectNav) projectNav.remove();
 
@@ -375,8 +379,14 @@ export default class UI {
       );
       if (projectContainer) projectContainer.remove();
 
+      const taskRows = document.querySelectorAll(
+        `.task-row[data-project-id="${projectId}"]`
+      );
+      taskRows.forEach(row => row.remove());
+
       this.updateProjectSelect();
       this.updateAllTaskCount();
+      this.checkTasksAvailability();
     }
   }
 
