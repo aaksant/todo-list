@@ -11,7 +11,7 @@ export default class TasksManager {
 
   appendTask(name, importance, date, projectId = null) {
     const task = {
-      id: this.currentTaskId++,
+      taskId: this.currentTaskId++,
       name,
       importance,
       date,
