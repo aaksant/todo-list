@@ -1,6 +1,4 @@
 // Too lazy to implement edit feature
-// FIXME: Deleting project doesn't remove its tasks.
-
 import { format } from 'date-fns';
 import _ from 'lodash';
 
@@ -8,15 +6,45 @@ import editSvg from '../assets/edit.svg';
 import trashSvg from '../assets/trash.svg';
 import xmarkSvg from '../assets/xmark.svg';
 import TasksManager from './TasksManager';
+
 export default class UI {
   constructor() {
     this.tasksManager = new TasksManager();
+
     this.setupEventListeners();
+    this.renderInitialTasks();
+    this.renderInitialProjects();
     this.checkTasksAvailability();
+    this.updateAllTaskCount();
   }
 
   #getSelectedOption(option) {
     return option.options[option.selectedIndex].text;
+  }
+
+  renderInitialTasks() {
+    this.tasksManager.allTasks.forEach(task => {
+      const importanceClass = this.getImportanceClass(task.importance);
+      this.prepareNewTaskRow('inbox', task, importanceClass);
+
+      if (task.type === 'Today') {
+        this.prepareNewTaskRow('today', task, importanceClass);
+      } else if (task.type === 'Planned') {
+        this.prepareNewTaskRow('planned', task, importanceClass);
+      }
+
+      if (task.projectId) {
+        this.prepareNewTaskRow(task.projectId, task, importanceClass);
+      }
+    });
+  }
+
+  renderInitialProjects() {
+    this.tasksManager
+      .getAllProjects()
+      .forEach(project => this.addProject(project));
+
+    this.updateProjectSelect();
   }
 
   setupEventListeners() {
@@ -110,16 +138,14 @@ export default class UI {
     const projectName = document.getElementById('newProjectName').value.trim();
 
     if (projectName) {
-      const projects = this.tasksManager
-        .getAllProjects()
-        .map(project => project.name);
-
-      if (!projects.includes(projectName)) {
-        this.addProject(projectName);
+      const newProject = this.tasksManager.addProject(projectName);
+      if (newProject) {
+        this.addProject(newProject);
         this.toggleModal(false, 'project');
         this.clearProjectModal();
+        this.updateProjectSelect();
       } else {
-        alert('Project name cannot be same.');
+        alert('A project with this name already exists.');
       }
     } else {
       alert('Please enter a project name.');
@@ -161,16 +187,25 @@ export default class UI {
 
   handleDeleteTask(e) {
     const taskRow = e.target.closest('.task-row');
-    const taskId = +taskRow.dataset.id;
+    const taskId = +taskRow.dataset.taskId;
 
-    this.tasksManager.deleteTask(taskId);
+    const deletedTask = this.tasksManager.deleteTask(taskId);
 
-    document
-      .querySelectorAll(`.task-row[data-id="${taskId}"]`)
-      .forEach(row => row.remove());
+    if (deletedTask) {
+      document
+        .querySelectorAll(`.task-row[data-task-id="${taskId}"]`)
+        .forEach(row => row.remove());
 
-    this.checkTasksAvailability();
-    this.updateAllTaskCount();
+      this.checkTasksAvailability();
+      this.updateAllTaskCount();
+
+      if (deletedTask.projectId) {
+        this.updateTaskCount(
+          deletedTask.projectId,
+          this.tasksManager.getTaskCount(deletedTask.projectId)
+        );
+      }
+    }
   }
 
   handleNavSwitch(e) {
@@ -205,32 +240,29 @@ export default class UI {
     this.checkTasksAvailability();
   }
 
-  addProject(name) {
-    const project = this.tasksManager.addProject(name);
-    const mainContainer = document.querySelector('.main');
-
+  addProject(project) {
     const projectsHeading = document.querySelector('.nav.project-task h2');
+    const mainContainer = document.querySelector('.main');
 
     const projectNav = `
       <button id="${project.id}" class="btn btn-nav">
-        ${name} 
+        ${project.name} 
         <span class="task-count">0</span>
         <img src="${xmarkSvg}" class="btn-delete-project" alt="X mark"/>
       </button>`;
 
     const projectContainer = `
       <div class="type-container ${project.id} hidden">
-        <h1 class="type-title">${name}</h1>
+        <h1 class="type-title">${project.name}</h1>
         <div class="task-wrapper">
           <p class="no-tasks-message">You have no tasks to do.</p>
         </div>
       </div>`;
 
-    mainContainer.insertAdjacentHTML('beforeend', projectContainer);
     projectsHeading.insertAdjacentHTML('afterend', projectNav);
+    mainContainer.insertAdjacentHTML('beforeend', projectContainer);
 
     this.updateTaskCount(project.id, 0);
-    this.updateProjectSelect();
   }
 
   updateProjectSelect() {
@@ -406,7 +438,7 @@ export default class UI {
 
   updateAllTaskCount() {
     const counts = this.tasksManager.getAllTaskCounts();
-
+  
     for (const [type, count] of Object.entries(counts)) {
       this.updateTaskCount(type, count);
     }

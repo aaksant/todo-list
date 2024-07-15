@@ -1,12 +1,15 @@
 import { isSameDay } from 'date-fns';
 import ProjectsManager from './ProjectsManager.js';
+import Storage from './Storage.js';
 
 export default class TasksManager {
   constructor() {
-    this.allTasks = [];
-    this.tasksForType = [];
-    this.currentTaskId = 0;
     this.projectsManager = new ProjectsManager();
+    this.storage = new Storage();
+
+    this.allTasks = this.storage.loadTasks();
+    this.tasksForType = [];
+    this.currentTaskId = this.storage.loadCurrentTaskId();
   }
 
   appendTask(name, importance, date, projectId = null) {
@@ -25,16 +28,25 @@ export default class TasksManager {
 
     this.allTasks.push(task);
     if (projectId) this.projectsManager.addTask(projectId, task.id);
+
+    this.storage.saveTasks(this.allTasks);
+    this.storage.saveCurrentTaskId(this.currentTaskId);
   }
 
   deleteTask(id) {
-    const task = this.allTasks.find(task => task.id === id);
+    const taskIndex = this.allTasks.findIndex(task => task.taskId === id);
+    if (taskIndex === -1) return null;
 
-    if (task && task.projectId) {
-      this.projectsManager.removeTask(task.projectId, id);
+    const deletedTask = this.allTasks[taskIndex];
+
+    if (deletedTask.projectId) {
+      this.projectsManager.removeTask(deletedTask.projectId, id);
     }
 
-    this.allTasks = this.allTasks.filter(task => task.id !== id);
+    this.allTasks.splice(taskIndex, 1);
+    this.storage.saveTasks(this.allTasks);
+
+    return deletedTask;
   }
 
   getTaskCount(type) {

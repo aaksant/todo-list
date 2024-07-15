@@ -1,6 +1,9 @@
+import Storage from './Storage';
+
 export default class ProjectsManager {
   constructor() {
-    this.projects = [];
+    this.storage = new Storage();
+    this.projects = this.storage.loadProjects();
   }
 
   getAllProjects() {
@@ -12,6 +15,8 @@ export default class ProjectsManager {
   }
 
   addProject(name) {
+    if (this.projects.some(project => project.name === name)) return null;
+
     const project = {
       id: `project-${Date.now().toString()}`,
       name,
@@ -19,6 +24,7 @@ export default class ProjectsManager {
     };
 
     this.projects.push(project);
+    this.storage.saveProjects(this.projects);
     return project;
   }
 
@@ -29,7 +35,8 @@ export default class ProjectsManager {
       this.projects = this.projects.filter(
         project => project !== deletedProject
       );
-      
+
+      this.storage.saveProjects(this.projects);
       return deletedProject;
     }
   }
@@ -40,6 +47,8 @@ export default class ProjectsManager {
     if (project) {
       project.tasks.push(taskId);
     }
+
+    this.storage.saveProjects(this.projects);
   }
 
   removeTask(projectId, taskId) {
@@ -47,6 +56,7 @@ export default class ProjectsManager {
 
     if (project) {
       project.tasks = project.tasks.filter(id => id !== taskId);
+      this.storage.saveProjects(this.projects);
     }
   }
 }
