@@ -8,7 +8,7 @@ Things that I do:
 3. Initial task and project data structures with objects and arrays.
 4. Adding new task and new project in the interface.
 5. Basic nav switches.
-6. Clearing modal after modal closed.
+6. Clearing modal after modal is closed.
 7. Formating and checking if a date is past date using `date-fns` library.
 8. Trimming form values.
 9. Priority feature.
